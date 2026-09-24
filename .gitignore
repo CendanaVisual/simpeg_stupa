@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Environment files (secrets never committed to Git)
+.env
+.env*.local
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# Vercel
+.vercel
+
+# Operating System Files
+.DS_Store
+*.pem
+Thumbs.db

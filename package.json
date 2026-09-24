@@ -1,0 +1,33 @@
+{
+  "name": "sipeg-stupa",
+  "version": "1.0.0",
+  "description": "Sistem Informasi Presensi & Kepegawaian STUPA - Modern Attendance System with Geofencing, Facial Snapshot & Cloudinary Integration",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "migrate": "node db/migrate.js"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.6.1",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.11.0",
+    "dotenv": "^18.0.3",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.48.0",
+    "next": "^14.2.15",
+    "pg": "^8.23.0",
+    "postcss": "^8.5.28",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.14"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.5"
+  }
+}

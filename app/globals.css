@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 30, 41, 59;
+  --background-start-rgb: 240, 249, 255;
+  --background-end-rgb: 224, 242, 254;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #bae6fd;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7dd3fc;
+}
+
+/* Precision A4 Print Stylesheet */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 15mm 10mm;
+  }
+
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html, body {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 9pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Force tables to stay strictly within A4 width with zero horizontal overflow */
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tbody tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border: 1px solid #1e293b !important;
+    padding: 4px 6px !important;
+    font-size: 8.5pt !important;
+  }
+
+  td {
+    border: 1px solid #334155 !important;
+    padding: 4px 6px !important;
+    font-size: 8.5pt !important;
+    color: #000000 !important;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
