@@ -122,12 +122,17 @@ export default function AdminDashboard() {
   };
 
   const loadPegawai = () => {
-    fetch('/api/admin/pegawai')
-      .then((res) => res.json())
+    fetch('/api/pegawai')
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         if (data.pegawai) setPegawaiList(data.pegawai);
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error('Error loading pegawai:', err);
+      });
   };
 
   const loadKantor = () => {
@@ -178,8 +183,8 @@ export default function AdminDashboard() {
     setApprovalMsg(null);
 
     try {
-      const res = await fetch(`/api/pengajuan/${id}/approve`, {
-        method: 'POST',
+      const res = await fetch(`/api/pengajuan/${id}/approval`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status_approval: action,
@@ -187,7 +192,7 @@ export default function AdminDashboard() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Gagal memproses approval');
 
       setApprovalMsg({
@@ -211,7 +216,7 @@ export default function AdminDashboard() {
     setPegawaiActionMsg(null);
 
     try {
-      const url = editingPegawai ? `/api/admin/pegawai/${editingPegawai.id}` : '/api/admin/pegawai';
+      const url = editingPegawai ? `/api/pegawai/${editingPegawai.id}` : '/api/pegawai';
       const method = editingPegawai ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -220,7 +225,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(pegawaiForm),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Gagal menyimpan pegawai');
 
       setPegawaiActionMsg({
@@ -249,8 +254,8 @@ export default function AdminDashboard() {
     if (!confirm(`Apakah Anda yakin ingin menghapus akun pegawai "${nama}"? Semua data presensi akan ikut terhapus.`)) return;
 
     try {
-      const res = await fetch(`/api/admin/pegawai/${id}`, { method: 'DELETE' });
-      const data = await res.json();
+      const res = await fetch(`/api/pegawai/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Gagal menghapus pegawai');
 
       setPegawaiActionMsg({ type: 'success', text: `Pegawai "${nama}" berhasil dihapus.` });
@@ -264,8 +269,8 @@ export default function AdminDashboard() {
     if (!confirm(`Reset password pegawai "${nama}" ke default ("stupa123")?`)) return;
 
     try {
-      const res = await fetch(`/api/admin/pegawai/${id}/reset-password`, { method: 'POST' });
-      const data = await res.json();
+      const res = await fetch(`/api/pegawai/${id}/reset-password`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Gagal mereset kata sandi');
 
       setPegawaiActionMsg({ type: 'success', text: `Sandi untuk "${nama}" berhasil direset ke "stupa123".` });

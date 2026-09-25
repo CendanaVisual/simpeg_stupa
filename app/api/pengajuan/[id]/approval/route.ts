@@ -76,3 +76,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     );
   }
 }
+
+// Support POST as well
+export const POST = PUT;
+
