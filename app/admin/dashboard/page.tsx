@@ -580,7 +580,7 @@ export default function AdminDashboard() {
             <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
               {pegawaiList.filter((p) => p.role === 'pegawai').length}
             </div>
-            <span className="text-[11px] text-slate-500">Terdaftar di SIMPEG</span>
+            <span className="text-[11px] text-slate-500">Terdaftar di Manajemen Pegawai</span>
           </div>
 
           <div
@@ -627,7 +627,7 @@ export default function AdminDashboard() {
             <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
               Rp {(rekapData?.stats?.total_potongan_gaji_rp || 0).toLocaleString('id-ID')}
             </div>
-            <span className="text-[11px] text-slate-500">Denda Rp 500/Menit Pelanggaran</span>
+            <span className="text-[11px] text-slate-500">Denda Per Menit Pelanggaran</span>
           </div>
         </div>
 
@@ -1450,7 +1450,7 @@ export default function AdminDashboard() {
                   <span>Rekapitulasi Presensi & Perhitungan Potongan Gaji Pegawai</span>
                 </h2>
                 <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Denda otomatis Rp 500 per menit untuk keterlambatan & kepulangan mendahului.
+                  Denda otomatis per menit untuk keterlambatan & kepulangan mendahului.
                 </p>
               </div>
 
