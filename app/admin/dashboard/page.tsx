@@ -31,7 +31,7 @@ import {
 export default function AdminDashboard() {
   const router = useRouter();
   const [adminUser, setAdminUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'approval' | 'pegawai' | 'kantor' | 'rekap'>('approval');
+  const [activeTab, setActiveTab] = useState<'approval' | 'pegawai' | 'hari_libur' | 'kantor' | 'rekap'>('approval');
   const [darkMode, setDarkMode] = useState(false);
 
   // Pending Approvals State
@@ -55,6 +55,20 @@ export default function AdminDashboard() {
     sisa_cuti_tahunan: 12,
   });
   const [pegawaiActionMsg, setPegawaiActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Hari Libur State (Point 1 - Submenu Input Hari Libur)
+  const [holidaysList, setHolidaysList] = useState<any[]>([]);
+  const [loadingHolidays, setLoadingHolidays] = useState(false);
+  const [filterTahunLibur, setFilterTahunLibur] = useState(new Date().getFullYear());
+  const [todayHolidayInfo, setTodayHolidayInfo] = useState<any>(null);
+  const [holidayForm, setHolidayForm] = useState({
+    tanggal: '',
+    keterangan: '',
+    tipe: 'nasional' as 'nasional' | 'khusus',
+  });
+  const [savingHoliday, setSavingHoliday] = useState(false);
+  const [syncingHolidays, setSyncingHolidays] = useState(false);
+  const [holidayMsg, setHolidayMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Kantor Configuration State (dengan 5 aturan jam kerja spesifik)
   const [kantorData, setKantorData] = useState({
@@ -167,10 +181,85 @@ export default function AdminDashboard() {
       .finally(() => setLoadingRekap(false));
   };
 
+  const loadHolidays = (tahun = filterTahunLibur) => {
+    setLoadingHolidays(true);
+    fetch(`/api/hari-libur?tahun=${tahun}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.holidays) setHolidaysList(data.holidays);
+        if (data.today) setTodayHolidayInfo(data.today);
+        setLoadingHolidays(false);
+      })
+      .catch((err) => {
+        console.error('Error load holidays:', err);
+        setLoadingHolidays(false);
+      });
+  };
+
+  const handleSaveHoliday = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!holidayForm.tanggal || !holidayForm.keterangan) {
+      setHolidayMsg({ type: 'error', text: 'Tanggal dan Keterangan hari libur wajib diisi!' });
+      return;
+    }
+    setSavingHoliday(true);
+    setHolidayMsg(null);
+    try {
+      const res = await fetch('/api/hari-libur', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(holidayForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Gagal menyimpan hari libur');
+      setHolidayMsg({ type: 'success', text: `Hari libur "${holidayForm.keterangan}" berhasil disimpan!` });
+      setHolidayForm({ tanggal: '', keterangan: '', tipe: 'nasional' });
+      loadHolidays(filterTahunLibur);
+    } catch (err: any) {
+      setHolidayMsg({ type: 'error', text: err.message });
+    } finally {
+      setSavingHoliday(false);
+    }
+  };
+
+  const handleDeleteHoliday = async (id: string, keterangan: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus hari libur "${keterangan}" dari sistem?`)) return;
+    try {
+      const res = await fetch(`/api/hari-libur/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Gagal menghapus hari libur');
+      setHolidayMsg({ type: 'success', text: `Hari libur "${keterangan}" berhasil dihapus.` });
+      loadHolidays(filterTahunLibur);
+    } catch (err: any) {
+      setHolidayMsg({ type: 'error', text: err.message });
+    }
+  };
+
+  const handleSyncHolidays = async () => {
+    setSyncingHolidays(true);
+    setHolidayMsg(null);
+    try {
+      const res = await fetch('/api/hari-libur/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tahun: filterTahunLibur }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Gagal sinkronisasi hari libur');
+      setHolidayMsg({ type: 'success', text: data.message || 'Hari libur berhasil disinkronkan!' });
+      loadHolidays(filterTahunLibur);
+    } catch (err: any) {
+      setHolidayMsg({ type: 'error', text: err.message });
+    } finally {
+      setSyncingHolidays(false);
+    }
+  };
+
   useEffect(() => {
     loadApprovals();
     loadPegawai();
     loadKantor();
+    loadHolidays();
   }, []);
 
   useEffect(() => {
@@ -362,9 +451,9 @@ export default function AdminDashboard() {
               <th>Terlambat</th>
               <th>Mendahului</th>
               <th>Dinas Luar</th>
+              <th>Alpha (M/K)</th>
               <th>Total Menit Pelanggaran</th>
               <th>Potongan Gaji (Rp 500/m)</th>
-              <th>Sisa Cuti</th>
             </tr>
           </thead>
           <tbody>
@@ -372,6 +461,7 @@ export default function AdminDashboard() {
 
     rekapData.summaryPerPegawai.forEach((p: any, idx: number) => {
       const potongan = (p.total_potongan_gaji_rp || 0).toLocaleString('id-ID');
+      const totalAlpha = (p.total_alpha_masuk || 0) + (p.total_alpha_pulang || 0);
       excelHTML += `
         <tr>
           <td class="text-center">${idx + 1}</td>
@@ -383,9 +473,9 @@ export default function AdminDashboard() {
           <td class="text-center text-red">${p.total_terlambat}</td>
           <td class="text-center">${p.total_mendahului}</td>
           <td class="text-center">${p.total_dinas_luar}</td>
-          <td class="text-center font-bold">${p.total_menit_pelanggaran || p.total_menit_keterlambatan} Menit</td>
-          <td class="text-right text-red">Rp ${potongan}</td>
-          <td class="text-center font-bold">${p.sisa_cuti_tahunan} Hari</td>
+          <td class="text-center ${totalAlpha > 0 ? 'text-red font-bold' : ''}">${totalAlpha > 0 ? totalAlpha + 'x' : '0'}</td>
+          <td class="text-center font-bold">${p.total_menit_pelanggaran || 0} Menit</td>
+          <td class="text-right text-red font-bold">Rp ${potongan}</td>
         </tr>
       `;
     });
@@ -405,29 +495,29 @@ export default function AdminDashboard() {
               <th>Tipe</th>
               <th>Status</th>
               <th>Jarak GPS</th>
-              <th>Keterlambatan / Mendahului</th>
+              <th>Keterangan Pelanggaran</th>
               <th>Potongan Denda (Rp 500/m)</th>
-              <th>Link Bukti Foto Selfie</th>
+              <th>Bukti Foto / Catatan</th>
             </tr>
           </thead>
           <tbody>
     `;
 
     rekapData.logs?.forEach((l: any, idx: number) => {
-      const totalMenit = (l.waktu_terlambat || 0) + (l.waktu_mendahului || 0);
-      const dendaRp = totalMenit * 500;
+      const totalMenit = l.total_menit_pelanggaran || (l.waktu_terlambat || 0) + (l.waktu_mendahului || 0);
+      const dendaRp = l.denda_potongan_gaji !== undefined ? l.denda_potongan_gaji : totalMenit * 500;
       excelHTML += `
         <tr>
           <td class="text-center">${idx + 1}</td>
           <td class="font-bold">${l.nama}</td>
           <td>${l.nip || '-'}</td>
-          <td>${new Date(l.waktu_absen).toLocaleDateString('id-ID')} ${new Date(l.waktu_absen).toLocaleTimeString('id-ID')}</td>
+          <td>${l.is_alpha ? l.tgl_absen_wita + ' (Tanpa Presensi)' : new Date(l.waktu_absen).toLocaleDateString('id-ID') + ' ' + new Date(l.waktu_absen).toLocaleTimeString('id-ID') + ' WITA'}</td>
           <td class="text-center font-bold">${l.tipe_absen?.toUpperCase()}</td>
-          <td class="text-center">${l.status?.replace('_', ' ').toUpperCase()}</td>
+          <td class="text-center ${l.is_alpha ? 'text-red font-bold' : ''}">${l.is_alpha ? (l.tipe_absen === 'masuk' ? 'ALPHA MASUK' : 'ALPHA PULANG') : l.status?.replace('_', ' ').toUpperCase()}</td>
           <td class="text-center">${l.jarak_dari_kantor ? l.jarak_dari_kantor + ' m' : '-'}</td>
-          <td class="text-center">${totalMenit > 0 ? totalMenit + ' Menit' : 'Tepat Waktu'}</td>
-          <td class="text-right ${totalMenit > 0 ? 'text-red' : 'text-green'}">Rp ${dendaRp.toLocaleString('id-ID')}</td>
-          <td>${l.url_foto_cloudinary || '-'}</td>
+          <td class="text-center">${l.catatan || (totalMenit > 0 ? totalMenit + ' Menit' : 'Tepat Waktu')}</td>
+          <td class="text-right ${totalMenit > 0 ? 'text-red font-bold' : 'text-green'}">Rp ${dendaRp.toLocaleString('id-ID')}</td>
+          <td>${l.is_alpha ? 'Sistem Otomatis (Alpha)' : l.url_foto_cloudinary || '-'}</td>
         </tr>
       `;
     });
@@ -663,11 +753,25 @@ export default function AdminDashboard() {
                 ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
                 : darkMode
                 ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-600 hover:text-sky-800 hover:bg-sky-50'
+                : 'text-slate-700 hover:text-sky-900 hover:bg-sky-50'
             }`}
           >
             <Users className="w-4 h-4" />
             <span>Manajemen Pegawai & Kuota</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('hari_libur')}
+            className={`py-2 px-3.5 text-xs sm:text-sm font-bold flex items-center gap-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
+              activeTab === 'hari_libur'
+                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                : darkMode
+                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-700 hover:text-sky-900 hover:bg-sky-50'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Input Hari Libur</span>
           </button>
 
           <button
@@ -677,7 +781,7 @@ export default function AdminDashboard() {
                 ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
                 : darkMode
                 ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-600 hover:text-sky-800 hover:bg-sky-50'
+                : 'text-slate-700 hover:text-sky-900 hover:bg-sky-50'
             }`}
           >
             <Building className="w-4 h-4" />
@@ -1195,6 +1299,276 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* TAB SUBMENU: INPUT HARI LIBUR & SINKRONISASI KALENDER NASIONAL */}
+        {activeTab === 'hari_libur' && (
+          <div
+            className={`mt-6 border rounded-3xl p-5 sm:p-6 shadow-sm transition ${
+              darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-sky-200/80'
+            }`}
+          >
+            {/* Header Section */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h2
+                  className={`text-base font-bold flex items-center gap-2 ${
+                    darkMode ? 'text-white' : 'text-slate-900'
+                  }`}
+                >
+                  <Calendar className="w-5 h-5 text-sky-500" />
+                  <span>Manajemen & Input Hari Libur STUPA</span>
+                </h2>
+                <p className={`text-xs mt-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Kelola hari libur nasional, cuti bersama, dan hari libur khusus internal sekolah (Galungan, Kuningan, dll). Pada hari libur terdaftar, presensi dinonaktifkan otomatis.
+                </p>
+              </div>
+
+              {/* Tombol Sinkronisasi Kalender Nasional / Google Calendar */}
+              <button
+                type="button"
+                onClick={handleSyncHolidays}
+                disabled={syncingHolidays}
+                className="px-4 py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-md transition cursor-pointer disabled:opacity-50 flex-shrink-0"
+                title="Tarik & Sinkronkan Data Hari Libur Nasional Otomatis dari Kalender"
+              >
+                <RefreshCw className={`w-4 h-4 ${syncingHolidays ? 'animate-spin' : ''}`} />
+                <span>{syncingHolidays ? 'Menyinkronkan...' : 'Sinkronkan Kalender Libur Nasional'}</span>
+              </button>
+            </div>
+
+            {/* Status Hari Ini Banner */}
+            {todayHolidayInfo && (
+              <div
+                className={`mb-6 p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs shadow-sm ${
+                  todayHolidayInfo.is_holiday
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200'
+                    : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{todayHolidayInfo.is_holiday ? '🏖️' : '💼'}</span>
+                  <div>
+                    <div className="font-bold text-sm">
+                      Status Hari Ini: {todayHolidayInfo.is_holiday ? 'HARI LIBUR' : 'HARI KERJA EFEKTIF'}
+                    </div>
+                    <div className="text-[11px] opacity-85 mt-0.5">
+                      {todayHolidayInfo.keterangan} • Tanggal: {todayHolidayInfo.date}
+                    </div>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-white/70 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
+                  {todayHolidayInfo.tipe}
+                </span>
+              </div>
+            )}
+
+            {holidayMsg && (
+              <div
+                className={`mb-6 p-3.5 rounded-xl text-xs flex items-center gap-2 ${
+                  holidayMsg.type === 'success'
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-semibold'
+                    : 'bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 font-semibold'
+                }`}
+              >
+                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{holidayMsg.text}</span>
+              </div>
+            )}
+
+            {/* Grid: Form Input Manual & List Hari Libur */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Form Input Manual */}
+              <div
+                className={`lg:col-span-4 border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 ${
+                  darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/50 border-sky-200/80'
+                }`}
+              >
+                <h3
+                  className={`text-sm font-bold flex items-center gap-2 ${
+                    darkMode ? 'text-white' : 'text-slate-900'
+                  }`}
+                >
+                  <Calendar className="w-4 h-4 text-sky-500" />
+                  <span>Form Input Hari Libur Manual</span>
+                </h3>
+                <p className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Tambahkan hari libur khusus internal sekolah (Galungan, Kuningan, cuti bersama sekolah, libur semester).
+                </p>
+
+                <form onSubmit={handleSaveHoliday} className="space-y-3.5">
+                  <div>
+                    <label className={`block text-xs font-semibold mb-1 ${darkMode ? 'text-slate-300' : 'text-slate-800'}`}>
+                      Tanggal Libur <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={holidayForm.tanggal}
+                      onChange={(e) => setHolidayForm({ ...holidayForm, tanggal: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-sky-200 text-slate-900 shadow-sm'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-xs font-semibold mb-1 ${darkMode ? 'text-slate-300' : 'text-slate-800'}`}>
+                      Nama / Keterangan Hari Libur <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Hari Raya Galungan / Libur Khusus STUPA"
+                      value={holidayForm.keterangan}
+                      onChange={(e) => setHolidayForm({ ...holidayForm, keterangan: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-sky-200 text-slate-900 shadow-sm'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-xs font-semibold mb-1 ${darkMode ? 'text-slate-300' : 'text-slate-800'}`}>
+                      Kategori / Tipe Libur
+                    </label>
+                    <select
+                      value={holidayForm.tipe}
+                      onChange={(e) => setHolidayForm({ ...holidayForm, tipe: e.target.value as any })}
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-sky-200 text-slate-900 shadow-sm'
+                      }`}
+                    >
+                      <option value="khusus">Libur Khusus Sekolah (STUPA / Bali)</option>
+                      <option value="nasional">Hari Libur Nasional / Cuti Bersama</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={savingHoliday}
+                    className="w-full py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>{savingHoliday ? 'Menyimpan...' : 'Simpan Hari Libur'}</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Tabel Daftar Hari Libur Terdaftar */}
+              <div className="lg:col-span-8 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <h3 className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      Daftar Tanggal Merah & Hari Libur Terdaftar
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
+                      {holidaysList.length} Hari
+                    </span>
+                  </div>
+
+                  {/* Filter Tahun */}
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-semibold ${darkMode ? 'text-slate-400' : 'text-slate-700'}`}>
+                      Tahun:
+                    </span>
+                    <select
+                      value={filterTahunLibur}
+                      onChange={(e) => {
+                        const yr = parseInt(e.target.value);
+                        setFilterTahunLibur(yr);
+                        loadHolidays(yr);
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border focus:outline-none ${
+                        darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-sky-200 text-slate-900 shadow-sm'
+                      }`}
+                    >
+                      {tahunOptions.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-sky-100/70 dark:bg-slate-800 uppercase font-semibold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+                      <tr>
+                        <th className="py-2.5 px-3 text-center w-12">No</th>
+                        <th className="py-2.5 px-3 text-left w-36">Tanggal</th>
+                        <th className="py-2.5 px-3 text-left">Nama / Keterangan Libur</th>
+                        <th className="py-2.5 px-3 text-center w-28">Kategori</th>
+                        <th className="py-2.5 px-3 text-center w-20">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
+                      {loadingHolidays ? (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-slate-500">
+                            Memuat data hari libur...
+                          </td>
+                        </tr>
+                      ) : holidaysList.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-slate-500">
+                            Belum ada hari libur tersimpan untuk tahun {filterTahunLibur}. Klik &quot;Sinkronkan Kalender Libur Nasional&quot; atau input secara manual.
+                          </td>
+                        </tr>
+                      ) : (
+                        holidaysList.map((h: any, idx: number) => {
+                          const dateObj = new Date(h.tanggal);
+                          return (
+                            <tr
+                              key={h.id || idx}
+                              className="hover:bg-sky-50/40 dark:hover:bg-slate-850/40 transition"
+                            >
+                              <td className="py-2.5 px-3 text-center font-semibold text-slate-600 dark:text-slate-400">
+                                {idx + 1}
+                              </td>
+                              <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                                {dateObj.toLocaleDateString('id-ID', {
+                                  weekday: 'short',
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })}
+                              </td>
+                              <td className="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200">
+                                {h.keterangan}
+                              </td>
+                              <td className="py-2.5 px-3 text-center">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                    h.tipe === 'khusus'
+                                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                                      : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
+                                  }`}
+                                >
+                                  {h.tipe === 'khusus' ? 'Khusus STUPA' : 'Nasional'}
+                                </span>
+                              </td>
+                              <td className="py-2.5 px-3 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteHoliday(h.id, h.keterangan)}
+                                  className="p-1.5 rounded-lg text-rose-500 hover:text-white hover:bg-rose-600 transition cursor-pointer"
+                                  title="Hapus Hari Libur Ini"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TAB 3: PENGATURAN KANTOR & ATURAN JAM KERJA SPESIFIK */}
         {activeTab === 'kantor' && (
           <div
@@ -1449,62 +1823,86 @@ export default function AdminDashboard() {
                   <Calendar className="w-5 h-5 text-sky-500" />
                   <span>Rekapitulasi Presensi & Perhitungan Potongan Gaji Pegawai</span>
                 </h2>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Denda otomatis per menit untuk keterlambatan & kepulangan mendahului.
+                <p className={`text-xs mt-0.5 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Denda otomatis Rp 500 per menit. Tidak absen masuk = +200 menit, tidak absen keluar = +200 menit.
                 </p>
               </div>
 
-              {/* Filters */}
+              {/* Filters & Actions */}
               <div className="flex flex-wrap items-center gap-2.5">
-                <select
-                  value={filterBulan}
-                  onChange={(e) => setFilterBulan(parseInt(e.target.value))}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium focus:outline-none ${
-                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50 border border-sky-200 text-slate-800'
-                  }`}
-                >
-                  {bulanOptions.map((b) => (
-                    <option key={b.val} value={b.val}>
-                      {b.label}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={filterTahun}
-                  onChange={(e) => setFilterTahun(parseInt(e.target.value))}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium focus:outline-none ${
-                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50 border border-sky-200 text-slate-800'
-                  }`}
-                >
-                  {tahunOptions.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={filterPegawaiId}
-                  onChange={(e) => setFilterPegawaiId(e.target.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium focus:outline-none max-w-xs ${
-                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50 border border-sky-200 text-slate-800'
-                  }`}
-                >
-                  <option value="all">Semua Pegawai</option>
-                  {pegawaiList
-                    .filter((p) => p.role === 'pegawai')
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nama}
+                {/* Filter Bulan */}
+                <div className="flex items-center gap-1.5 bg-sky-50 dark:bg-slate-800 p-1 rounded-xl border border-sky-200 dark:border-slate-700">
+                  <span className="text-[11px] font-bold px-2 text-slate-700 dark:text-slate-300">Bulan:</span>
+                  <select
+                    value={filterBulan}
+                    onChange={(e) => setFilterBulan(parseInt(e.target.value))}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold focus:outline-none ${
+                      darkMode ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm'
+                    }`}
+                  >
+                    {bulanOptions.map((b) => (
+                      <option key={b.val} value={b.val}>
+                        {b.label}
                       </option>
                     ))}
-                </select>
+                  </select>
+                </div>
+
+                {/* Filter Tahun */}
+                <div className="flex items-center gap-1.5 bg-sky-50 dark:bg-slate-800 p-1 rounded-xl border border-sky-200 dark:border-slate-700">
+                  <span className="text-[11px] font-bold px-2 text-slate-700 dark:text-slate-300">Tahun:</span>
+                  <select
+                    value={filterTahun}
+                    onChange={(e) => setFilterTahun(parseInt(e.target.value))}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold focus:outline-none ${
+                      darkMode ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm'
+                    }`}
+                  >
+                    {tahunOptions.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filter Pegawai */}
+                <div className="flex items-center gap-1.5 bg-sky-50 dark:bg-slate-800 p-1 rounded-xl border border-sky-200 dark:border-slate-700">
+                  <span className="text-[11px] font-bold px-2 text-slate-700 dark:text-slate-300">Pegawai:</span>
+                  <select
+                    value={filterPegawaiId}
+                    onChange={(e) => setFilterPegawaiId(e.target.value)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold focus:outline-none max-w-xs ${
+                      darkMode ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm'
+                    }`}
+                  >
+                    <option value="all">Semua Pegawai</option>
+                    {pegawaiList
+                      .filter((p) => p.role === 'pegawai')
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.nama}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Tombol Terapkan Filter */}
+                <button
+                  type="button"
+                  onClick={loadRekap}
+                  disabled={loadingRekap}
+                  className="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer disabled:opacity-50"
+                  title="Terapkan Filter Terpilih"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingRekap ? 'animate-spin' : ''}`} />
+                  <span>{loadingRekap ? 'Memuat...' : 'Terapkan Filter'}</span>
+                </button>
 
                 {/* Tombol Unduh Excel */}
                 <button
                   onClick={exportToExcel}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
                   title="Unduh Laporan Format Microsoft Excel (.xls)"
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -1514,10 +1912,10 @@ export default function AdminDashboard() {
                 {/* Tombol Cetak PDF dengan Kop Resmi */}
                 <button
                   onClick={() => window.print()}
-                  className={`px-3.5 py-1.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer ${
+                  className={`px-3.5 py-2 border rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer ${
                     darkMode
                       ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
-                      : 'bg-sky-100 hover:bg-sky-200 border-sky-200 text-sky-800'
+                      : 'bg-sky-100 hover:bg-sky-200 border-sky-300 text-sky-900'
                   }`}
                   title="Cetak Laporan Resmi dengan Kop Surat"
                 >
@@ -1535,7 +1933,7 @@ export default function AdminDashboard() {
               >
                 <tbody>
                   <tr>
-                    <td className="w-24 text-center align-middle p-2" style={{ border: 'none', width: '90px' }}>
+                    <td className="text-center align-middle p-2" style={{ border: 'none', width: '90px' }}>
                       <img
                         src="/logo.png"
                         alt="Logo Resmi STUPA"
@@ -1567,6 +1965,9 @@ export default function AdminDashboard() {
                 </h2>
                 <p className="text-xs text-black mt-1">
                   Periode: Bulan {bulanOptions.find((b) => b.val === filterBulan)?.label} Tahun {filterTahun}
+                  {filterPegawaiId !== 'all' && (
+                    <span> • Pegawai: {pegawaiList.find((p) => p.id === filterPegawaiId)?.nama}</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -1579,91 +1980,100 @@ export default function AdminDashboard() {
                 } print:text-black`}
               >
                 <span>Ringkasan Disiplin & Akumulasi Denda Per Pegawai</span>
-                <span className="text-xs font-normal text-slate-500 print:text-black">
-                  Tarif Denda: <strong>Rp 500 / Menit</strong> Pelanggaran
+                <span className="text-xs font-normal text-slate-600 dark:text-slate-400 print:text-black">
+                  Tarif Denda: <strong>Rp 500 / Menit</strong> (Alpha Masuk = 200m, Alpha Pulang = 200m)
                 </span>
               </h3>
               <div className="overflow-x-auto">
                 <table
-                  className="w-full text-left text-xs border border-slate-300 dark:border-slate-800 print:border-black"
-                  style={{ tableLayout: 'fixed', width: '100%' }}
+                  className="w-full text-xs border border-slate-300 dark:border-slate-700 print:border-black"
+                  style={{ tableLayout: 'fixed', width: '100%', borderCollapse: 'collapse' }}
                 >
                   <colgroup>
                     <col style={{ width: '18%' }} />
                     <col style={{ width: '12%' }} />
+                    <col style={{ width: '7%' }} />
+                    <col style={{ width: '7%' }} />
+                    <col style={{ width: '7%' }} />
+                    <col style={{ width: '7%' }} />
+                    <col style={{ width: '7%' }} />
                     <col style={{ width: '8%' }} />
-                    <col style={{ width: '8%' }} />
-                    <col style={{ width: '8%' }} />
-                    <col style={{ width: '8%' }} />
-                    <col style={{ width: '8%' }} />
-                    <col style={{ width: '10%' }} />
                     <col style={{ width: '12%' }} />
-                    <col style={{ width: '8%' }} />
+                    <col style={{ width: '15%' }} />
                   </colgroup>
-                  <thead className="bg-sky-100/70 dark:bg-slate-800/80 print:bg-slate-100 uppercase font-semibold text-slate-700 dark:text-slate-300 print:text-black border-b border-slate-300 dark:border-slate-800 print:border-black">
+                  <thead className="bg-sky-100/90 dark:bg-slate-800 print:bg-slate-100 uppercase font-bold text-slate-800 dark:text-slate-200 print:text-black border border-slate-300 dark:border-slate-700 print:border-black">
                     <tr>
-                      <th className="py-2 px-2 text-left truncate">NIP & Nama</th>
-                      <th className="py-2 px-2 text-left truncate">Jabatan</th>
-                      <th className="py-2 px-1 text-center truncate">Hadir</th>
-                      <th className="py-2 px-1 text-center truncate">Tepat</th>
-                      <th className="py-2 px-1 text-center truncate">Telat</th>
-                      <th className="py-2 px-1 text-center truncate">Cepat</th>
-                      <th className="py-2 px-1 text-center truncate">Dinas</th>
-                      <th className="py-2 px-1 text-center truncate">Pelanggaran</th>
-                      <th className="py-2 px-2 text-right truncate">Potongan</th>
-                      <th className="py-2 px-1 text-center truncate">Sisa Cuti</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">NIP & Nama</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Jabatan</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Hadir</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Tepat</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Telat</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Cepat</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Dinas</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Alpha</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Pelanggaran</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Potongan Gaji</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800 print:divide-black text-slate-800 dark:text-slate-200 print:text-black">
-                    {rekapData?.summaryPerPegawai?.map((p: any) => (
-                      <tr
-                        key={p.id}
-                        className="hover:bg-sky-50/40 dark:hover:bg-slate-850/40 print:hover:bg-transparent"
-                      >
-                        <td className="py-2 px-2">
-                          <div className="font-semibold text-slate-900 dark:text-white print:text-black truncate">
-                            {p.nama}
-                          </div>
-                          <div className="text-[10px] text-slate-500 print:text-slate-700 truncate">
-                            NIP: {p.nip || '-'}
-                          </div>
-                        </td>
-                        <td className="py-2 px-2 text-slate-600 dark:text-slate-400 print:text-black truncate">
-                          {p.jabatan || 'Staff'}
-                        </td>
-                        <td className="py-2 px-1 text-center font-bold text-slate-900 dark:text-white print:text-black">
-                          {p.total_hadir}
-                        </td>
-                        <td className="py-2 px-1 text-center text-emerald-600 dark:text-emerald-400 print:text-black font-semibold">
-                          {p.hadir_tepat_waktu}
-                        </td>
-                        <td className="py-2 px-1 text-center text-rose-600 dark:text-rose-400 print:text-black font-semibold">
-                          {p.total_terlambat}
-                        </td>
-                        <td className="py-2 px-1 text-center text-amber-600 dark:text-amber-400 print:text-black font-semibold">
-                          {p.total_mendahului}
-                        </td>
-                        <td className="py-2 px-1 text-center text-indigo-600 dark:text-purple-400 print:text-black font-semibold">
-                          {p.total_dinas_luar}
-                        </td>
-                        <td className="py-2 px-1 text-center font-bold text-slate-700 dark:text-slate-300 print:text-black">
-                          {p.total_menit_pelanggaran || p.total_menit_keterlambatan} m
-                        </td>
-                        <td className="py-2 px-2 text-right font-bold text-rose-600 dark:text-rose-400 print:text-black truncate">
-                          Rp {(p.total_potongan_gaji_rp || 0).toLocaleString('id-ID')}
-                        </td>
-                        <td className="py-2 px-1 text-center font-bold text-emerald-600 dark:text-emerald-400 print:text-black">
-                          {p.sisa_cuti_tahunan} Hari
-                        </td>
-                      </tr>
-                    ))}
+                    {rekapData?.summaryPerPegawai?.map((p: any) => {
+                      const totalAlpha = (p.total_alpha_masuk || 0) + (p.total_alpha_pulang || 0);
+                      return (
+                        <tr
+                          key={p.id}
+                          className="hover:bg-sky-50/40 dark:hover:bg-slate-850/40 print:hover:bg-transparent"
+                        >
+                          <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black">
+                            <div className="font-bold text-slate-900 dark:text-white print:text-black">
+                              {p.nama}
+                            </div>
+                            <div className="text-[10px] text-slate-600 dark:text-slate-400 print:text-black">
+                              NIP: {p.nip || '-'}
+                            </div>
+                          </td>
+                          <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black text-slate-700 dark:text-slate-300 print:text-black">
+                            {p.jabatan || 'Staff'}
+                          </td>
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-slate-900 dark:text-white print:text-black">
+                            {p.total_hadir}
+                          </td>
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-emerald-700 dark:text-emerald-400 print:text-black font-semibold">
+                            {p.hadir_tepat_waktu}
+                          </td>
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-rose-700 dark:text-rose-400 print:text-black font-semibold">
+                            {p.total_terlambat}
+                          </td>
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-amber-700 dark:text-amber-400 print:text-black font-semibold">
+                            {p.total_mendahului}
+                          </td>
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-indigo-700 dark:text-purple-400 print:text-black font-semibold">
+                            {p.total_dinas_luar}
+                          </td>
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-rose-700 dark:text-rose-400 print:text-black">
+                            {totalAlpha > 0 ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300">
+                                {totalAlpha}x
+                              </span>
+                            ) : (
+                              '0'
+                            )}
+                          </td>
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-slate-800 dark:text-slate-200 print:text-black">
+                            {p.total_menit_pelanggaran || 0} m
+                          </td>
+                          <td className="py-2 px-2 text-right border border-slate-200 dark:border-slate-800 print:border-black font-bold text-rose-700 dark:text-rose-400 print:text-black whitespace-nowrap">
+                            Rp {(p.total_potongan_gaji_rp || 0).toLocaleString('id-ID')}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </div>
 
             {/* Detailed Log Table with Denda Column (Precision A4 Colgroup) */}
-            <div className="mt-6">
+            <div className="mt-8">
               <h3
                 className={`text-sm font-bold mb-3 ${
                   darkMode ? 'text-white' : 'text-slate-900'
@@ -1673,8 +2083,8 @@ export default function AdminDashboard() {
               </h3>
               <div className="overflow-x-auto">
                 <table
-                  className="w-full text-left text-xs border border-slate-300 dark:border-slate-800 print:border-black"
-                  style={{ tableLayout: 'fixed', width: '100%' }}
+                  className="w-full text-xs border border-slate-300 dark:border-slate-700 print:border-black"
+                  style={{ tableLayout: 'fixed', width: '100%', borderCollapse: 'collapse' }}
                 >
                   <colgroup>
                     <col style={{ width: '4%' }} />
@@ -1683,21 +2093,21 @@ export default function AdminDashboard() {
                     <col style={{ width: '14%' }} />
                     <col style={{ width: '8%' }} />
                     <col style={{ width: '10%' }} />
-                    <col style={{ width: '9%' }} />
-                    <col style={{ width: '16%' }} />
+                    <col style={{ width: '8%' }} />
+                    <col style={{ width: '17%' }} />
                     <col style={{ width: '14%' }} />
                   </colgroup>
-                  <thead className="bg-sky-100/70 dark:bg-slate-800/80 print:bg-slate-100 uppercase font-semibold text-slate-700 dark:text-slate-300 print:text-black border-b border-slate-300 dark:border-slate-800 print:border-black">
+                  <thead className="bg-sky-100/90 dark:bg-slate-800 print:bg-slate-100 uppercase font-bold text-slate-800 dark:text-slate-200 print:text-black border border-slate-300 dark:border-slate-700 print:border-black">
                     <tr>
-                      <th className="py-2 px-1 text-center">No</th>
-                      <th className="py-2 px-1 text-center">Foto</th>
-                      <th className="py-2 px-2 text-left">Pegawai</th>
-                      <th className="py-2 px-2 text-left">Waktu Presensi</th>
-                      <th className="py-2 px-1 text-center">Tipe</th>
-                      <th className="py-2 px-1 text-center">Status</th>
-                      <th className="py-2 px-1 text-center">Jarak</th>
-                      <th className="py-2 px-2 text-left">Keterangan</th>
-                      <th className="py-2 px-2 text-right">Potongan Gaji</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">No</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Foto</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Pegawai</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Waktu Presensi</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Tipe</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Status</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Jarak</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Keterangan</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Potongan Gaji</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800 print:divide-black text-slate-800 dark:text-slate-200 print:text-black">
@@ -1709,16 +2119,22 @@ export default function AdminDashboard() {
                       </tr>
                     ) : (
                       rekapData?.logs?.map((l: any, idx: number) => {
-                        const totalMenit = (l.waktu_terlambat || 0) + (l.waktu_mendahului || 0);
-                        const denda = totalMenit * 500;
+                        const totalMenit = l.total_menit_pelanggaran || (l.waktu_terlambat || 0) + (l.waktu_mendahului || 0);
+                        const denda = l.denda_potongan_gaji !== undefined ? l.denda_potongan_gaji : totalMenit * 500;
                         return (
                           <tr
                             key={l.id}
                             className="hover:bg-sky-50/40 dark:hover:bg-slate-850/40 print:hover:bg-transparent"
                           >
-                            <td className="py-2 px-1 text-center font-medium">{idx + 1}</td>
-                            <td className="py-2 px-1 text-center">
-                              {l.url_foto_cloudinary ? (
+                            <td className="py-2 px-1 text-center font-semibold text-slate-700 dark:text-slate-300 print:text-black border border-slate-200 dark:border-slate-800 print:border-black">
+                              {idx + 1}
+                            </td>
+                            <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black">
+                              {l.is_alpha ? (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 print:border print:border-black">
+                                  ALPHA
+                                </span>
+                              ) : l.url_foto_cloudinary ? (
                                 <a
                                   href={l.url_foto_cloudinary}
                                   target="_blank"
@@ -1735,62 +2151,74 @@ export default function AdminDashboard() {
                                 <span className="text-slate-400">-</span>
                               )}
                             </td>
-                            <td className="py-2 px-2">
-                              <div className="font-semibold text-slate-900 dark:text-white print:text-black truncate">
+                            <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black">
+                              <div className="font-bold text-slate-900 dark:text-white print:text-black">
                                 {l.nama}
                               </div>
-                              <div className="text-[10px] text-slate-500 print:text-slate-700 truncate">
+                              <div className="text-[10px] text-slate-600 dark:text-slate-400 print:text-black">
                                 NIP: {l.nip || '-'}
                               </div>
                             </td>
-                            <td className="py-2 px-2">
-                              <div className="text-slate-900 dark:text-white print:text-black">
+                            <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black">
+                              <div className="text-slate-900 dark:text-white print:text-black font-semibold">
                                 {new Date(l.waktu_absen).toLocaleDateString('id-ID')}
                               </div>
-                              <div className="text-[10px] text-slate-500 print:text-slate-700">
-                                {new Date(l.waktu_absen).toLocaleTimeString('id-ID', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}{' '}
-                                WITA
+                              <div className="text-[10px] text-slate-500 print:text-black">
+                                {l.is_alpha ? (
+                                  <span className="text-rose-600 dark:text-rose-400 font-bold">Tanpa Presensi</span>
+                                ) : (
+                                  `${new Date(l.waktu_absen).toLocaleTimeString('id-ID', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })} WITA`
+                                )}
                               </div>
                             </td>
-                            <td className="py-2 px-1 text-center uppercase font-bold text-[11px]">
+                            <td className="py-2 px-1 text-center uppercase font-bold text-[11px] border border-slate-200 dark:border-slate-800 print:border-black">
                               {l.tipe_absen}
                             </td>
-                            <td className="py-2 px-1 text-center">
+                            <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black">
                               <span
                                 className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  l.status === 'tepat_waktu'
-                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 print:border print:border-black'
+                                  l.is_alpha
+                                    ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200 print:border print:border-black'
+                                    : l.status === 'tepat_waktu'
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 print:border print:border-black'
                                     : l.status === 'terlambat'
-                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 print:border print:border-black'
+                                    ? 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300 print:border print:border-black'
                                     : l.status === 'mendahului'
-                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 print:border print:border-black'
-                                    : 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400 print:border print:border-black'
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 print:border print:border-black'
+                                    : 'bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300 print:border print:border-black'
                                 }`}
                               >
-                                {l.status?.replace('_', ' ').toUpperCase()}
+                                {l.is_alpha
+                                  ? l.tipe_absen === 'masuk'
+                                    ? 'ALPHA MASUK'
+                                    : 'ALPHA PULANG'
+                                  : l.status?.replace('_', ' ').toUpperCase()}
                               </span>
                             </td>
-                            <td className="py-2 px-1 text-center">
+                            <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black">
                               {l.jarak_dari_kantor ? `${l.jarak_dari_kantor}m` : '-'}
                             </td>
-                            <td className="py-2 px-2 text-slate-600 dark:text-slate-400 print:text-black text-[11px]">
-                              {l.waktu_terlambat > 0 && `Telat ${l.waktu_terlambat}m. `}
-                              {l.waktu_mendahului > 0 && `Mendahului ${l.waktu_mendahului}m. `}
-                              {l.catatan || '-'}
+                            <td className="py-2 px-2 text-slate-700 dark:text-slate-300 print:text-black text-[11px] border border-slate-200 dark:border-slate-800 print:border-black">
+                              {l.catatan || (
+                                <>
+                                  {l.waktu_terlambat > 0 && `Telat ${l.waktu_terlambat}m. `}
+                                  {l.waktu_mendahului > 0 && `Mendahului ${l.waktu_mendahului}m. `}
+                                </>
+                              )}
                             </td>
-                            <td className="py-2 px-2 text-right">
+                            <td className="py-2 px-2 text-right border border-slate-200 dark:border-slate-800 print:border-black">
                               {totalMenit > 0 ? (
-                                <span className="text-rose-600 dark:text-rose-400 font-bold block">
+                                <span className="text-rose-700 dark:text-rose-400 font-bold block">
                                   -Rp {denda.toLocaleString('id-ID')}
-                                  <span className="block text-[10px] font-normal text-slate-500 print:text-black">
+                                  <span className="block text-[10px] font-normal text-slate-600 dark:text-slate-400 print:text-black">
                                     ({totalMenit} m)
                                   </span>
                                 </span>
                               ) : (
-                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                                <span className="text-emerald-700 dark:text-emerald-400 font-semibold text-[11px]">
                                   Rp 0
                                 </span>
                               )}

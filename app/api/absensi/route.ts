@@ -3,6 +3,7 @@ import { withTransaction, query } from '@/lib/db';
 import { getSessionFromRequest } from '@/lib/auth';
 import { calculateHaversineDistance } from '@/lib/haversine';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { checkIsHoliday } from '@/lib/holiday';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +34,10 @@ export async function GET(req: NextRequest) {
       const masuk = todayAbsensi.find((a: any) => a.tipe_absen === 'masuk') || null;
       const pulang = todayAbsensi.find((a: any) => a.tipe_absen === 'pulang') || null;
 
-      return NextResponse.json({ masuk, pulang, list: todayAbsensi });
+      // Cek apakah hari ini hari libur (akhir pekan atau hari libur di tabel)
+      const holiday = await checkIsHoliday();
+
+      return NextResponse.json({ masuk, pulang, list: todayAbsensi, holiday });
     }
 
     // Riwayat dengan filter bulan dan tahun (Januari-Desember, 2025-2050)
@@ -179,6 +183,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 5b. Validasi Hari Libur (Sabtu, Minggu, atau Tanggal Merah)
+    const holidayCheck = await checkIsHoliday();
+    if (holidayCheck.is_holiday) {
+      return NextResponse.json(
+        {
+          error: `Presensi tidak dapat dilakukan karena hari ini adalah hari libur (${holidayCheck.keterangan}).`,
+          is_holiday: true,
+          keterangan: holidayCheck.keterangan,
+        },
+        { status: 400 }
+      );
+    }
+
     // 6. Hitung Keterlambatan atau Mendahului sesuai Aturan Jam Kerja Kantor (Zona Waktu WITA)
     const now = new Date();
     const witaParts = new Intl.DateTimeFormat('en-US', {
@@ -206,10 +223,7 @@ export async function POST(req: NextRequest) {
     // b. jam absen masuk akhir = 07.30
     // c. jam absen pulang senin-kamis mulai = 15.30
     // d. jam absen pulang hari jumat mulai = 13.00
-    // e. jam absen pulang akhir = 18.00 (diatas jam itu tidak bisa absen)
-    const [masukMulaiH, masukMulaiM] = (kantor.jam_masuk_mulai || '06:30:00').split(':').map(Number);
-    const masukMulaiMinutes = masukMulaiH * 60 + masukMulaiM;
-
+    // e. jam absen pulang akhir = 18.00
     const [masukAkhirH, masukAkhirM] = (kantor.jam_masuk_akhir || kantor.jam_masuk || '07:30:00').split(':').map(Number);
     const masukAkhirMinutes = masukAkhirH * 60 + masukAkhirM;
 
@@ -219,9 +233,6 @@ export async function POST(req: NextRequest) {
     const [pulangJumatH, pulangJumatM] = (kantor.jam_pulang_jumat_mulai || '13:00:00').split(':').map(Number);
     const pulangJumatMinutes = pulangJumatH * 60 + pulangJumatM;
 
-    const [pulangAkhirH, pulangAkhirM] = (kantor.jam_pulang_akhir || '18:00:00').split(':').map(Number);
-    const pulangAkhirMinutes = pulangAkhirH * 60 + pulangAkhirM;
-
     let statusPresensi = 'tepat_waktu';
     let waktuTerlambat = 0; // menit
     let waktuMendahului = 0; // menit
@@ -229,44 +240,29 @@ export async function POST(req: NextRequest) {
     if (isDinasLuar) {
       statusPresensi = 'dinas_luar';
     } else if (tipe_absen === 'masuk') {
-      // Validasi waktu buka absen masuk
-      if (currentTimeInMinutes < masukMulaiMinutes) {
-        return NextResponse.json(
-          {
-            error: `Presensi masuk belum dibuka! Waktu mulai presensi masuk adalah pukul ${kantor.jam_masuk_mulai.substring(0, 5)} WITA.`,
-          },
-          { status: 400 }
-        );
-      }
-
-      // Validasi keterlambatan setelah jam_masuk_akhir (07:30)
+      // Tombol dan presensi tetap dapat dikirim meski di luar jam batas:
+      // Jika hadir setelah jam_masuk_akhir (07:30), dihitung terlambat
       if (currentTimeInMinutes > masukAkhirMinutes) {
         statusPresensi = 'terlambat';
         waktuTerlambat = currentTimeInMinutes - masukAkhirMinutes;
       } else {
         statusPresensi = 'tepat_waktu';
+        waktuTerlambat = 0;
       }
     } else if (tipe_absen === 'pulang') {
-      // Validasi batas akhir absen pulang (18:00) - diatas jam itu tidak bisa absen
-      if (currentTimeInMinutes > pulangAkhirMinutes) {
-        return NextResponse.json(
-          {
-            error: `Batas waktu presensi pulang telah berakhir pada pukul ${kantor.jam_pulang_akhir.substring(0, 5)} WITA. Anda tidak dapat melakukan presensi pulang di atas jam tersebut.`,
-          },
-          { status: 400 }
-        );
-      }
-
       // Tentukan jadwal mulai pulang berdasarkan hari kerja:
       // Hari Jumat (dayOfWeek === 5) mulai 13:00; Senin-Kamis mulai 15:30
       const isHariJumat = dayOfWeek === 5;
       const jadwalMulaiPulangMinutes = isHariJumat ? pulangJumatMinutes : pulangSKMinutes;
 
+      // Tombol dan presensi tetap dapat dikirim meski sebelum jadwal pulang:
+      // Jika pulang sebelum jam mulai pulang, dihitung mendahului
       if (currentTimeInMinutes < jadwalMulaiPulangMinutes) {
         statusPresensi = 'mendahului';
         waktuMendahului = jadwalMulaiPulangMinutes - currentTimeInMinutes;
       } else {
         statusPresensi = 'tepat_waktu';
+        waktuMendahului = 0;
       }
     }
 

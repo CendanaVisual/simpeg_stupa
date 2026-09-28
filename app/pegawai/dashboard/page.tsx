@@ -48,6 +48,7 @@ export default function PegawaiDashboard() {
 
   // Attendance Today & History State (dengan Filter Bulan & Tahun - Point 2)
   const [todayAbsen, setTodayAbsen] = useState<{ masuk: any; pulang: any } | null>(null);
+  const [todayHoliday, setTodayHoliday] = useState<{ is_holiday: boolean; keterangan: string; tipe: string } | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [filterBulan, setFilterBulan] = useState(new Date().getMonth() + 1);
   const [filterTahun, setFilterTahun] = useState(new Date().getFullYear());
@@ -154,6 +155,7 @@ export default function PegawaiDashboard() {
       .then((res) => res.json())
       .then((data) => {
         setTodayAbsen({ masuk: data.masuk, pulang: data.pulang });
+        if (data.holiday) setTodayHoliday(data.holiday);
       })
       .catch(console.error);
   };
@@ -738,6 +740,23 @@ export default function PegawaiDashboard() {
                 <span>Kamera Presensi & Geofencing GPS</span>
               </h2>
 
+              {/* Holiday Announcement Banner */}
+              {todayHoliday?.is_holiday && (
+                <div className="mb-4 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3 shadow-sm">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white font-bold flex items-center justify-center flex-shrink-0 text-sm shadow">
+                    🏖️
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-amber-950 dark:text-amber-100">
+                      Hari Ini Hari Libur: {todayHoliday.keterangan}
+                    </h4>
+                    <p className="mt-1 text-slate-700 dark:text-slate-300 leading-relaxed text-[11px]">
+                      Sistem mendeteksi hari ini adalah tanggal merah / libur resmi. Seluruh pegawai STUPA tidak diwajibkan melakukan presensi dan tombol presensi dinonaktifkan.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Status Radius Geofencing */}
               <div
                 className={`mb-4 p-3.5 rounded-2xl border flex items-center justify-between text-xs transition ${
@@ -867,26 +886,46 @@ export default function PegawaiDashboard() {
                 </div>
               )}
 
-              {/* Submission Buttons */}
+              {/* Submission Buttons - Tetap Aktif diluar jam, berubah abu-abu setelah absen atau jika hari libur */}
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  disabled={submittingAbsen || !!todayAbsen?.masuk}
+                  disabled={submittingAbsen || !!todayAbsen?.masuk || !!todayHoliday?.is_holiday}
                   onClick={() => handleAbsenSubmit('masuk')}
-                  className="py-3 px-4 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
+                  className={`py-3 px-4 font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 ${
+                    todayHoliday?.is_holiday || !!todayAbsen?.masuk
+                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-none border border-slate-300 dark:border-slate-700'
+                      : 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white cursor-pointer'
+                  }`}
                 >
-                  <Clock className="w-4 h-4" />
-                  <span>{todayAbsen?.masuk ? 'Sudah Absen Masuk' : 'Kirim Absen Masuk'}</span>
+                  <Clock className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">
+                    {todayHoliday?.is_holiday
+                      ? 'Hari Libur (Nonaktif)'
+                      : todayAbsen?.masuk
+                      ? 'Sudah Absen Masuk'
+                      : 'Kirim Absen Masuk'}
+                  </span>
                 </button>
 
                 <button
                   type="button"
-                  disabled={submittingAbsen || !todayAbsen?.masuk || !!todayAbsen?.pulang}
+                  disabled={submittingAbsen || !!todayAbsen?.pulang || !!todayHoliday?.is_holiday}
                   onClick={() => handleAbsenSubmit('pulang')}
-                  className="py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
+                  className={`py-3 px-4 font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 ${
+                    todayHoliday?.is_holiday || !!todayAbsen?.pulang
+                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-none border border-slate-300 dark:border-slate-700'
+                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white cursor-pointer'
+                  }`}
                 >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>{todayAbsen?.pulang ? 'Sudah Absen Pulang' : 'Kirim Absen Pulang'}</span>
+                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">
+                    {todayHoliday?.is_holiday
+                      ? 'Hari Libur (Nonaktif)'
+                      : todayAbsen?.pulang
+                      ? 'Sudah Absen Pulang'
+                      : 'Kirim Absen Pulang'}
+                  </span>
                 </button>
               </div>
             </div>

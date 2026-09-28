@@ -77,7 +77,17 @@ CREATE TABLE IF NOT EXISTS absensi (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 5. TABEL PENGAJUAN (Cuti Tahunan, Sakit, & Dinas Luar)
+-- 5. TABEL HARI LIBUR (Libur Nasional, Cuti Bersama, & Libur Khusus Sekolah)
+CREATE TABLE IF NOT EXISTS hari_libur (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tanggal DATE NOT NULL UNIQUE,
+    keterangan VARCHAR(255) NOT NULL,
+    tipe VARCHAR(50) NOT NULL DEFAULT 'nasional', -- 'nasional' atau 'khusus'
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_hari_libur_tanggal ON hari_libur(tanggal);
+
+-- 6. TABEL PENGAJUAN (Cuti Tahunan, Sakit, & Dinas Luar)
 CREATE TABLE IF NOT EXISTS pengajuan (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pegawai_id UUID NOT NULL REFERENCES pegawai(id) ON DELETE CASCADE,

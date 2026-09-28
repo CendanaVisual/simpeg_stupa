@@ -84,9 +84,13 @@ body {
     background-color: #f1f5f9 !important;
     color: #000000 !important;
     font-weight: 700 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
     border: 1px solid #1e293b !important;
-    padding: 4px 6px !important;
+    padding: 5px 4px !important;
     font-size: 8.5pt !important;
+    white-space: normal !important;
+    word-break: normal !important;
   }
 
   td {
