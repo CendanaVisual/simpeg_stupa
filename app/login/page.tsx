@@ -179,7 +179,7 @@ export default function LoginPage() {
                   darkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}
               >
-                NIP, Email, atau Username
+                NIP/NIK, Email, atau Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-sky-600/70 dark:text-slate-400">
@@ -190,7 +190,7 @@ export default function LoginPage() {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="Masukkan NIP atau Email akun Anda"
+                  placeholder="Masukkan NIP/NIK, Username, Email akun Anda"
                   className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-sky-400 ${
                     darkMode
                       ? 'bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500'
@@ -289,7 +289,7 @@ export default function LoginPage() {
             }`}
           >
             <ShieldCheck className="w-4 h-4 text-indigo-500 mb-1" />
-            <span className="font-medium">Neon Postgres</span>
+            <span className="font-medium">Postgres</span>
           </div>
         </div>
       </div>
