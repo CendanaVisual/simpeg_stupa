@@ -161,7 +161,7 @@ export default function LoginPage() {
               </p>
             </div>
             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-              SIAP PAKAI
+              Online
             </span>
           </div>
 
