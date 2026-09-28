@@ -1042,7 +1042,7 @@ export default function PegawaiDashboard() {
                   <li>Pulang Senin-Kamis: Mulai {kantor?.jam_pulang_senin_kamis_mulai?.substring(0, 5) || '15:30'} WITA</li>
                   <li>Pulang Hari Jumat: Mulai {kantor?.jam_pulang_jumat_mulai?.substring(0, 5) || '13:00'} WITA</li>
                   <li>Batas Akhir Pulang: {kantor?.jam_pulang_akhir?.substring(0, 5) || '18:00'} WITA (Sistem Tertutup)</li>
-                  <li>Denda Disiplin: Rp 500 per menit keterlambatan / kepulangan mendahului.</li>
+                  <li>Denda Disiplin: potongan per menit keterlambatan / kepulangan mendahului.</li>
                   <li>Radius Geofencing: Maksimal {kantor?.radius_meter || 100} meter dari kantor.</li>
                 </ul>
               </div>
@@ -1068,7 +1068,7 @@ export default function PegawaiDashboard() {
                   <span>Riwayat Presensi Pegawai</span>
                 </h2>
                 <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Lihat riwayat kehadiran Anda berdasarkan bulan (Januari-Desember) dan tahun (2025-2050).
+                  Lihat riwayat kehadiran Anda berdasarkan bulan dan tahun.
                 </p>
               </div>
 
@@ -1276,9 +1276,9 @@ export default function PegawaiDashboard() {
                       darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
                     }`}
                   >
-                    <option value="cuti_tahunan">Cuti Tahunan (Potong Kuota, Tanpa Berkas)</option>
-                    <option value="cuti_sakit">Cuti Sakit (Wajib Unggah Surat Dokter)</option>
-                    <option value="dinas_luar">Dinas Luar (Wajib Surat Tugas, Bypass Geofence)</option>
+                    <option value="cuti_tahunan">Cuti Tahunan</option>
+                    <option value="cuti_sakit">Cuti Sakit</option>
+                    <option value="dinas_luar">Dinas Luar</option>
                   </select>
                 </div>
 
