@@ -529,7 +529,7 @@ export default function PegawaiDashboard() {
                   darkMode ? 'text-white' : 'text-slate-900'
                 }`}
               >
-                SIPEG STUPA
+                Sistem Manajemen Pegawai STUPA
               </h1>
               <p
                 className={`text-xs ${
