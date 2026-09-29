@@ -2301,8 +2301,8 @@ export default function AdminDashboard() {
                       </p>
                       <p className="font-bold m-0 mt-1">Staff TU/Bendahara Gaji</p>
                       <div className="h-16" />
-                      <p className="font-bold underline m-0">{adminUser?.nama || '.................................'}</p>
-                      <p className="m-0 text-[10px]">NIP. {adminUser?.nip || '198501012010011001'}</p>
+                      <p className="font-bold underline m-0">{adminUser?.nama || '...........................................'}</p>
+                      <p className="m-0 text-[10px]">NIP. {adminUser?.nip || '.............................'}</p>
                     </td>
                   </tr>
                 </tbody>
