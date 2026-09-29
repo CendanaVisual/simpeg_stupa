@@ -435,7 +435,7 @@ export default function AdminDashboard() {
         </style>
       </head>
       <body>
-        <div class="header-title">SEKOLAH TINGGI UNGGULAN PEDUNGAN (STUPA)</div>
+        <div class="header-title">SEKOLAH DASAR 7 PEDUNGAN</div>
         <div class="header-sub">LAPORAN REKAPITULASI PRESENSI & POTONGAN GAJI PEGAWAI<br>Periode: Bulan ${namaBulan} Tahun ${filterTahun}</div>
         
         <h3>1. Ringkasan Performa & Akumulasi Pemotongan Gaji Pegawai</h3>
@@ -443,7 +443,7 @@ export default function AdminDashboard() {
           <thead>
             <tr>
               <th>No</th>
-              <th>NIP</th>
+              <th>NIP/NIK</th>
               <th>Nama Pegawai</th>
               <th>Jabatan</th>
               <th>Total Hadir</th>
@@ -451,7 +451,7 @@ export default function AdminDashboard() {
               <th>Terlambat</th>
               <th>Mendahului</th>
               <th>Dinas Luar</th>
-              <th>Alpha (M/K)</th>
+              <th>Tidak Absen (M/K)</th>
               <th>Total Menit Pelanggaran</th>
               <th>Potongan Gaji (Rp 500/m)</th>
             </tr>
@@ -2003,15 +2003,15 @@ export default function AdminDashboard() {
                   </colgroup>
                   <thead className="bg-sky-100/90 dark:bg-slate-800 print:bg-slate-100 uppercase font-bold text-slate-800 dark:text-slate-200 print:text-black border border-slate-300 dark:border-slate-700 print:border-black">
                     <tr>
-                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">NIP & Nama</th>
+                      <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Nama & NIP/NIK</th>
                       <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Jabatan</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Hadir</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Tepat</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Telat</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Cepat</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Dinas</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Alpha</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Pelanggaran</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Kehadiran</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Tepat Waktu</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Terlambat</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Mendahului</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Dinas Luar</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Tidak Masuk</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Pelanggaran Disiplin</th>
                       <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Potongan Gaji</th>
                     </tr>
                   </thead>
@@ -2028,7 +2028,7 @@ export default function AdminDashboard() {
                               {p.nama}
                             </div>
                             <div className="text-[10px] text-slate-600 dark:text-slate-400 print:text-black">
-                              NIP: {p.nip || '-'}
+                              NIP/NIK: {p.nip || '-'}
                             </div>
                           </td>
                           <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black text-slate-700 dark:text-slate-300 print:text-black">
