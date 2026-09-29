@@ -2040,13 +2040,13 @@ export default function AdminDashboard() {
                     <tr>
                       <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Nama & NIP/NIK</th>
                       <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Jabatan</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Hadir</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Tepat</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Telat</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Cepat</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Dinas</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Cuti</th>
-                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Alpha</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Hadir</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Tepat Waktu</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Terlambat</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Mendahului</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Catatan Dinas</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Catatan Cuti</th>
+                      <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Total Tidak Absen</th>
                       <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Pelanggaran</th>
                       <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Potongan Gaji</th>
                     </tr>
