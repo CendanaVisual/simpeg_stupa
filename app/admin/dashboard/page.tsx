@@ -2285,10 +2285,10 @@ export default function AdminDashboard() {
                   <tr>
                     <td className="w-1/2 text-center" style={{ border: 'none' }}>
                       <p className="m-0">Mengetahui,</p>
-                      <p className="font-bold m-0 mt-1">Kepala Sekolah / Ketua STUPA</p>
+                      <p className="font-bold m-0 mt-1">Kepala SD Negeri 7 Pedungan</p>
                       <div className="h-16" />
-                      <p className="font-bold underline m-0">Dr. I Made Suardana, M.Pd</p>
-                      <p className="m-0 text-[10px]">NIP. 197808122003121001</p>
+                      <p className="font-bold underline m-0">Made Wahyuni Indrawati, S.Pd., M.Pd</p>
+                      <p className="m-0 text-[10px]">NIP. 197011072007012031</p>
                     </td>
                     <td className="w-1/2 text-center" style={{ border: 'none' }}>
                       <p className="m-0">
@@ -2299,9 +2299,9 @@ export default function AdminDashboard() {
                           year: 'numeric',
                         })}
                       </p>
-                      <p className="font-bold m-0 mt-1">Kepala Bagian Kepegawaian</p>
+                      <p className="font-bold m-0 mt-1">Staff TU/Bendahara Gaji</p>
                       <div className="h-16" />
-                      <p className="font-bold underline m-0">{adminUser?.nama || 'Administrator STUPA'}</p>
+                      <p className="font-bold underline m-0">{adminUser?.nama || '.................................'}</p>
                       <p className="m-0 text-[10px]">NIP. {adminUser?.nip || '198501012010011001'}</p>
                     </td>
                   </tr>
