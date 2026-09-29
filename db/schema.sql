@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS absensi (
     pegawai_id UUID NOT NULL REFERENCES pegawai(id) ON DELETE CASCADE,
     waktu_absen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     tipe_absen VARCHAR(20) NOT NULL CHECK (tipe_absen IN ('masuk', 'pulang')),
-    status VARCHAR(30) NOT NULL CHECK (status IN ('tepat_waktu', 'terlambat', 'mendahului', 'dinas_luar')),
+    status VARCHAR(30) NOT NULL CHECK (status IN ('tepat_waktu', 'terlambat', 'mendahului', 'dinas_luar', 'cuti_tahunan', 'cuti_sakit', 'cuti', 'sakit')),
     waktu_terlambat INT NOT NULL DEFAULT 0, -- Dalam menit
     waktu_mendahului INT NOT NULL DEFAULT 0, -- Dalam menit
     latitude NUMERIC(10, 7),
@@ -76,6 +76,11 @@ CREATE TABLE IF NOT EXISTS absensi (
     catatan TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Update constraint jika database sudah ada
+ALTER TABLE absensi DROP CONSTRAINT IF EXISTS absensi_status_check;
+ALTER TABLE absensi ADD CONSTRAINT absensi_status_check CHECK (status IN ('tepat_waktu', 'terlambat', 'mendahului', 'dinas_luar', 'cuti_tahunan', 'cuti_sakit', 'cuti', 'sakit'));
+
 
 -- 5. TABEL HARI LIBUR (Libur Nasional, Cuti Bersama, & Libur Khusus Sekolah)
 CREATE TABLE IF NOT EXISTS hari_libur (

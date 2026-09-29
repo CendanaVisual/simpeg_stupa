@@ -123,8 +123,8 @@ export default function LoginPage() {
             SIMPEG STUPA
           </h1>
           <p
-            className={`text-sm mt-1 font-medium ${
-              darkMode ? 'text-slate-400' : 'text-sky-800/80'
+            className={`text-sm mt-1 font-semibold ${
+              darkMode ? 'text-slate-200' : 'text-sky-950'
             }`}
           >
             Sistem Informasi Presensi & Manajemen Pegawai
@@ -135,8 +135,8 @@ export default function LoginPage() {
         <div
           className={`backdrop-blur-xl border rounded-3xl p-6 sm:p-8 shadow-2xl transition-all duration-300 ${
             darkMode
-              ? 'bg-slate-900/90 border-slate-800 shadow-black/50'
-              : 'bg-white/95 border-sky-200/90 shadow-sky-200/40'
+              ? 'bg-slate-900/95 border-slate-800 shadow-black/50'
+              : 'bg-white border-sky-200/90 shadow-sky-200/40'
           }`}
         >
           <div
@@ -153,21 +153,21 @@ export default function LoginPage() {
                 Portal Masuk
               </h2>
               <p
-                className={`text-xs ${
-                  darkMode ? 'text-slate-400' : 'text-slate-500'
+                className={`text-xs font-medium ${
+                  darkMode ? 'text-slate-200' : 'text-slate-700'
                 }`}
               >
                 Akses Pegawai & Administrator
               </p>
             </div>
-            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+            <span className="px-3 py-1 text-xs font-bold rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/30">
               Online
             </span>
           </div>
 
           {errorMsg && (
-            <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-rose-600 dark:text-rose-300 text-sm">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-500 mt-0.5" />
+            <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-rose-700 dark:text-rose-200 text-sm font-medium">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
@@ -176,13 +176,13 @@ export default function LoginPage() {
             <div>
               <label
                 className={`block text-xs font-bold mb-1.5 ${
-                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                  darkMode ? 'text-slate-100' : 'text-slate-900'
                 }`}
               >
                 NIP/NIK, Email, atau Username
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-sky-600/70 dark:text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-sky-700 dark:text-slate-300">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
@@ -191,10 +191,10 @@ export default function LoginPage() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="Masukkan NIP/NIK, Username, Email akun Anda"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${
                     darkMode
-                      ? 'bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500'
-                      : 'bg-sky-50/50 border border-sky-200 text-slate-900 placeholder-slate-400 focus:bg-white'
+                      ? 'bg-slate-950 border border-slate-700 text-white placeholder-slate-400'
+                      : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500 focus:bg-white'
                   }`}
                 />
               </div>
@@ -203,13 +203,13 @@ export default function LoginPage() {
             <div>
               <label
                 className={`block text-xs font-bold mb-1.5 ${
-                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                  darkMode ? 'text-slate-100' : 'text-slate-900'
                 }`}
               >
                 Kata Sandi (Password)
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-sky-600/70 dark:text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-sky-700 dark:text-slate-300">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -218,10 +218,10 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className={`w-full pl-10 pr-11 py-2.5 rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+                  className={`w-full pl-10 pr-11 py-2.5 rounded-xl text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${
                     darkMode
-                      ? 'bg-slate-950/80 border border-slate-700 text-white placeholder-slate-500'
-                      : 'bg-sky-50/50 border border-sky-200 text-slate-900 placeholder-slate-400 focus:bg-white'
+                      ? 'bg-slate-950 border border-slate-700 text-white placeholder-slate-400'
+                      : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500 focus:bg-white'
                   }`}
                 />
                 <button
@@ -229,8 +229,8 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute inset-y-0 right-0 pr-3.5 flex items-center transition focus:outline-none cursor-pointer ${
                     darkMode
-                      ? 'text-slate-400 hover:text-white'
-                      : 'text-slate-400 hover:text-sky-600'
+                      ? 'text-slate-300 hover:text-white'
+                      : 'text-slate-600 hover:text-sky-700'
                   }`}
                   title={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                 >
@@ -242,7 +242,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? (
                 <>
@@ -264,32 +264,32 @@ export default function LoginPage() {
           <div
             className={`p-2.5 rounded-xl border flex flex-col items-center transition ${
               darkMode
-                ? 'bg-slate-900/60 border-slate-800 text-slate-400'
-                : 'bg-white/80 border-sky-100 text-slate-600 shadow-sm'
+                ? 'bg-slate-900 border-slate-800 text-slate-200'
+                : 'bg-white border-sky-200 text-slate-800 font-semibold shadow-sm'
             }`}
           >
-            <MapPin className="w-4 h-4 text-sky-500 mb-1" />
-            <span className="font-medium">Geofencing GPS</span>
+            <MapPin className="w-4 h-4 text-sky-600 dark:text-sky-400 mb-1" />
+            <span>Geofencing GPS</span>
           </div>
           <div
             className={`p-2.5 rounded-xl border flex flex-col items-center transition ${
               darkMode
-                ? 'bg-slate-900/60 border-slate-800 text-slate-400'
-                : 'bg-white/80 border-sky-100 text-slate-600 shadow-sm'
+                ? 'bg-slate-900 border-slate-800 text-slate-200'
+                : 'bg-white border-sky-200 text-slate-800 font-semibold shadow-sm'
             }`}
           >
-            <Camera className="w-4 h-4 text-emerald-500 mb-1" />
-            <span className="font-medium">Cloudinary Snap</span>
+            <Camera className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1" />
+            <span>Cloudinary Snap</span>
           </div>
           <div
             className={`p-2.5 rounded-xl border flex flex-col items-center transition ${
               darkMode
-                ? 'bg-slate-900/60 border-slate-800 text-slate-400'
-                : 'bg-white/80 border-sky-100 text-slate-600 shadow-sm'
+                ? 'bg-slate-900 border-slate-800 text-slate-200'
+                : 'bg-white border-sky-200 text-slate-800 font-semibold shadow-sm'
             }`}
           >
-            <ShieldCheck className="w-4 h-4 text-indigo-500 mb-1" />
-            <span className="font-medium">Postgres</span>
+            <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mb-1" />
+            <span>Postgres DB</span>
           </div>
         </div>
       </div>

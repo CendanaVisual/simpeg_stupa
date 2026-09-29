@@ -30,3 +30,6 @@ yarn-error.log*
 .DS_Store
 *.pem
 Thumbs.db
+
+# Scratch and temp scripts
+scratch/

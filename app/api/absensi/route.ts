@@ -37,7 +37,19 @@ export async function GET(req: NextRequest) {
       // Cek apakah hari ini hari libur (akhir pekan atau hari libur di tabel)
       const holiday = await checkIsHoliday();
 
-      return NextResponse.json({ masuk, pulang, list: todayAbsensi, holiday });
+      // Cek apakah hari ini berada dalam rentang pengajuan cuti/dinas yang telah disetujui (approved)
+      const activePengajuanRows = await query(
+        `SELECT id, tipe_pengajuan, tanggal_mulai, tanggal_selesai, alasan, status_approval
+         FROM pengajuan
+         WHERE pegawai_id = $1
+           AND status_approval = 'approved'
+           AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Makassar')::DATE BETWEEN tanggal_mulai AND tanggal_selesai
+         LIMIT 1`,
+        [session.id]
+      );
+      const active_pengajuan = activePengajuanRows[0] || null;
+
+      return NextResponse.json({ masuk, pulang, list: todayAbsensi, holiday, active_pengajuan });
     }
 
     // Riwayat dengan filter bulan dan tahun (Januari-Desember, 2025-2050)
@@ -180,6 +192,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: `Anda sudah melakukan absen ${tipe_absen} untuk hari ini!` },
         { status: 409 }
+      );
+    }
+
+    // 5a. Cek apakah pegawai sedang dalam masa Cuti atau Dinas Luar yang telah Disetujui
+    const approvedLeave = await query(
+      `SELECT tipe_pengajuan, alasan FROM pengajuan
+       WHERE pegawai_id = $1
+         AND status_approval = 'approved'
+         AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Makassar')::DATE BETWEEN tanggal_mulai AND tanggal_selesai
+       LIMIT 1`,
+      [session.id]
+    );
+
+    if (approvedLeave.length > 0) {
+      const pTipe = approvedLeave[0].tipe_pengajuan;
+      const namaPengajuan = pTipe === 'cuti_tahunan' ? 'Cuti Tahunan' : pTipe === 'cuti_sakit' ? 'Cuti Sakit' : 'Dinas Luar';
+      return NextResponse.json(
+        { error: `Presensi tidak dapat dilakukan karena Anda sedang dalam masa ${namaPengajuan} yang telah disetujui Admin. Presensi Anda telah diinput secara otomatis oleh sistem.` },
+        { status: 400 }
       );
     }
 

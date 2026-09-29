@@ -49,6 +49,7 @@ export default function PegawaiDashboard() {
   // Attendance Today & History State (dengan Filter Bulan & Tahun - Point 2)
   const [todayAbsen, setTodayAbsen] = useState<{ masuk: any; pulang: any } | null>(null);
   const [todayHoliday, setTodayHoliday] = useState<{ is_holiday: boolean; keterangan: string; tipe: string } | null>(null);
+  const [todayApprovedPengajuan, setTodayApprovedPengajuan] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [filterBulan, setFilterBulan] = useState(new Date().getMonth() + 1);
   const [filterTahun, setFilterTahun] = useState(new Date().getFullYear());
@@ -156,6 +157,8 @@ export default function PegawaiDashboard() {
       .then((data) => {
         setTodayAbsen({ masuk: data.masuk, pulang: data.pulang });
         if (data.holiday) setTodayHoliday(data.holiday);
+        if (data.active_pengajuan) setTodayApprovedPengajuan(data.active_pengajuan);
+        else setTodayApprovedPengajuan(null);
       })
       .catch(console.error);
   };
@@ -534,8 +537,8 @@ export default function PegawaiDashboard() {
                 Sistem Manajemen Pegawai STUPA
               </h1>
               <p
-                className={`text-xs ${
-                  darkMode ? 'text-slate-400' : 'text-sky-800/80'
+                className={`text-xs font-semibold ${
+                  darkMode ? 'text-slate-200' : 'text-sky-950'
                 }`}
               >
                 Portal Presensi Pegawai
@@ -547,10 +550,10 @@ export default function PegawaiDashboard() {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-xl border flex items-center gap-1.5 text-xs font-semibold transition cursor-pointer ${
+              className={`p-2 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition cursor-pointer ${
                 darkMode
                   ? 'bg-slate-800 border-slate-700 text-sky-300 hover:bg-slate-700'
-                  : 'bg-sky-50 border-sky-200 text-sky-800 hover:bg-sky-100 shadow-sm'
+                  : 'bg-sky-50 border-sky-200 text-sky-900 hover:bg-sky-100 shadow-sm'
               }`}
               title={darkMode ? 'Beralih ke Tema Biru Langit' : 'Beralih ke Tema Gelap'}
             >
@@ -574,13 +577,13 @@ export default function PegawaiDashboard() {
               </div>
               <div className="hidden sm:flex flex-col items-start">
                 <span
-                  className={`text-sm font-semibold leading-tight ${
+                  className={`text-sm font-bold leading-tight ${
                     darkMode ? 'text-white' : 'text-slate-900'
                   }`}
                 >
                   {user?.nama}
                 </span>
-                <span className="text-xs text-sky-600 dark:text-sky-400 font-medium">
+                <span className="text-xs text-sky-700 dark:text-sky-300 font-bold">
                   {user?.jabatan || 'Pegawai'}
                 </span>
               </div>
@@ -588,10 +591,10 @@ export default function PegawaiDashboard() {
 
             <button
               onClick={handleLogout}
-              className={`p-2 rounded-xl border flex items-center gap-1.5 text-xs font-medium transition cursor-pointer ${
+              className={`p-2 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition cursor-pointer ${
                 darkMode
-                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-rose-600'
+                  ? 'bg-slate-800 border-slate-700 text-slate-200 hover:text-white hover:bg-slate-700'
+                  : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100 hover:text-rose-600'
               }`}
               title="Keluar"
             >
@@ -608,7 +611,7 @@ export default function PegawaiDashboard() {
           className={`border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-wrap items-center justify-between gap-4 transition ${
             darkMode
               ? 'bg-slate-900 border-slate-800'
-              : 'bg-white border-sky-200/80 shadow-sky-100'
+              : 'bg-white border-sky-200/90 shadow-sky-100'
           }`}
         >
           <div className="flex items-center gap-3.5">
@@ -626,11 +629,11 @@ export default function PegawaiDashboard() {
               )}
             </div>
             <div>
-              <div className="text-xs text-slate-500">NIP: {user?.nip || '-'}</div>
-              <div className={`text-base sm:text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              <div className="text-xs text-slate-700 dark:text-slate-300 font-semibold">NIP: {user?.nip || '-'}</div>
+              <div className={`text-base sm:text-lg font-extrabold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                 {user?.nama}
               </div>
-              <div className="text-xs text-slate-500">{user?.email}</div>
+              <div className="text-xs text-slate-700 dark:text-slate-300 font-medium">{user?.email}</div>
             </div>
           </div>
 
@@ -639,12 +642,12 @@ export default function PegawaiDashboard() {
               className={`border rounded-xl px-4 py-2 text-center transition ${
                 darkMode
                   ? 'bg-slate-800/90 border-slate-700/60'
-                  : 'bg-sky-50/60 border-sky-100'
+                  : 'bg-sky-50/80 border-sky-200'
               }`}
             >
-              <div className="text-xs text-slate-500 font-medium">Sisa Cuti Tahunan</div>
-              <div className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                {user?.sisa_cuti_tahunan ?? 12} <span className="text-xs font-normal text-slate-500">Hari</span>
+              <div className="text-xs text-slate-800 dark:text-slate-200 font-bold">Sisa Cuti Tahunan</div>
+              <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400">
+                {user?.sisa_cuti_tahunan ?? 12} <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Hari</span>
               </div>
             </div>
 
@@ -652,11 +655,11 @@ export default function PegawaiDashboard() {
               className={`border rounded-xl px-4 py-2 text-center transition ${
                 darkMode
                   ? 'bg-slate-800/90 border-slate-700/60'
-                  : 'bg-sky-50/60 border-sky-100'
+                  : 'bg-sky-50/80 border-sky-200'
               }`}
             >
-              <div className="text-xs text-slate-500 font-medium">Jam Server</div>
-              <div className="text-xl font-extrabold text-sky-600 dark:text-sky-400 font-mono">
+              <div className="text-xs text-slate-800 dark:text-slate-200 font-bold">Jam Server</div>
+              <div className="text-xl font-extrabold text-sky-700 dark:text-sky-300 font-mono">
                 {currentTime || '--:--:--'}
               </div>
             </div>
@@ -666,17 +669,17 @@ export default function PegawaiDashboard() {
         {/* Tab Navigation */}
         <div
           className={`flex border rounded-2xl p-1.5 mt-6 gap-2 sm:gap-4 overflow-x-auto transition ${
-            darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-sky-200/80 shadow-sm'
+            darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-sky-200 shadow-sm'
           }`}
         >
           <button
             onClick={() => setActiveTab('absen')}
             className={`py-2 px-3.5 text-xs sm:text-sm font-bold flex items-center gap-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
               activeTab === 'absen'
-                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-500/25'
                 : darkMode
-                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-600 hover:text-sky-800 hover:bg-sky-50'
+                ? 'text-slate-200 hover:text-white hover:bg-slate-800'
+                : 'text-slate-800 hover:text-sky-950 hover:bg-sky-100 font-bold'
             }`}
           >
             <Camera className="w-4 h-4" />
@@ -686,10 +689,10 @@ export default function PegawaiDashboard() {
             onClick={() => setActiveTab('riwayat')}
             className={`py-2 px-3.5 text-xs sm:text-sm font-bold flex items-center gap-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
               activeTab === 'riwayat'
-                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-500/25'
                 : darkMode
-                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-600 hover:text-sky-800 hover:bg-sky-50'
+                ? 'text-slate-200 hover:text-white hover:bg-slate-800'
+                : 'text-slate-800 hover:text-sky-950 hover:bg-sky-100 font-bold'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -699,10 +702,10 @@ export default function PegawaiDashboard() {
             onClick={() => setActiveTab('pengajuan')}
             className={`py-2 px-3.5 text-xs sm:text-sm font-bold flex items-center gap-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
               activeTab === 'pengajuan'
-                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-500/25'
                 : darkMode
-                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-600 hover:text-sky-800 hover:bg-sky-50'
+                ? 'text-slate-200 hover:text-white hover:bg-slate-800'
+                : 'text-slate-800 hover:text-sky-950 hover:bg-sky-100 font-bold'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -712,10 +715,10 @@ export default function PegawaiDashboard() {
             onClick={() => setActiveTab('profil')}
             className={`py-2 px-3.5 text-xs sm:text-sm font-bold flex items-center gap-2 rounded-xl transition whitespace-nowrap cursor-pointer ${
               activeTab === 'profil'
-                ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25'
+                ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-500/25'
                 : darkMode
-                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-600 hover:text-sky-800 hover:bg-sky-50'
+                ? 'text-slate-200 hover:text-white hover:bg-slate-800'
+                : 'text-slate-800 hover:text-sky-950 hover:bg-sky-100 font-bold'
             }`}
           >
             <User className="w-4 h-4" />
@@ -740,9 +743,47 @@ export default function PegawaiDashboard() {
                 <span>Kamera Presensi & Geofencing GPS</span>
               </h2>
 
+              {/* Approved Leave / Official Duty Banner */}
+              {todayApprovedPengajuan && (
+                <div className="mb-4 p-4 rounded-2xl bg-sky-100/90 dark:bg-sky-950/60 border border-sky-300 dark:border-sky-700/80 text-sky-950 dark:text-sky-100 text-xs flex items-start gap-3 shadow-sm">
+                  <div className="w-8 h-8 rounded-xl bg-sky-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-sm shadow">
+                    📋
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-sky-950 dark:text-sky-100">
+                      Status Hari Ini:{' '}
+                      {todayApprovedPengajuan.tipe_pengajuan === 'cuti_tahunan'
+                        ? 'Cuti Tahunan (Disetujui)'
+                        : todayApprovedPengajuan.tipe_pengajuan === 'cuti_sakit'
+                        ? 'Cuti Sakit (Disetujui)'
+                        : 'Dinas Luar (Disetujui)'}
+                    </h4>
+                    <p className="mt-1 text-slate-800 dark:text-slate-200 leading-relaxed text-[11px] font-medium">
+                      Pengajuan{' '}
+                      <strong>
+                        {todayApprovedPengajuan.tipe_pengajuan === 'cuti_tahunan'
+                          ? 'Cuti Tahunan'
+                          : todayApprovedPengajuan.tipe_pengajuan === 'cuti_sakit'
+                          ? 'Cuti Sakit'
+                          : 'Dinas Luar'}
+                      </strong>{' '}
+                      Anda untuk periode{' '}
+                      <strong>
+                        {new Date(todayApprovedPengajuan.tanggal_mulai).toLocaleDateString('id-ID')}
+                      </strong>{' '}
+                      s/d{' '}
+                      <strong>
+                        {new Date(todayApprovedPengajuan.tanggal_selesai).toLocaleDateString('id-ID')}
+                      </strong>{' '}
+                      telah disetujui Admin. Presensi masuk dan pulang Anda telah otomatis tercatat oleh sistem sehingga tombol absen dinonaktifkan.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Holiday Announcement Banner */}
               {todayHoliday?.is_holiday && (
-                <div className="mb-4 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3 shadow-sm">
+                <div className="mb-4 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-950 dark:text-amber-100 text-xs flex items-start gap-3 shadow-sm">
                   <div className="w-8 h-8 rounded-xl bg-amber-500 text-white font-bold flex items-center justify-center flex-shrink-0 text-sm shadow">
                     🏖️
                   </div>
@@ -750,7 +791,7 @@ export default function PegawaiDashboard() {
                     <h4 className="font-bold text-sm text-amber-950 dark:text-amber-100">
                       Hari Ini Hari Libur: {todayHoliday.keterangan}
                     </h4>
-                    <p className="mt-1 text-slate-700 dark:text-slate-300 leading-relaxed text-[11px]">
+                    <p className="mt-1 text-slate-800 dark:text-slate-200 leading-relaxed text-[11px] font-medium">
                       Sistem mendeteksi hari ini adalah tanggal merah / libur resmi. Seluruh pegawai STUPA tidak diwajibkan melakukan presensi dan tombol presensi dinonaktifkan.
                     </p>
                   </div>
@@ -761,21 +802,21 @@ export default function PegawaiDashboard() {
               <div
                 className={`mb-4 p-3.5 rounded-2xl border flex items-center justify-between text-xs transition ${
                   isWithinRadius
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300'
-                    : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-300'
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-800 dark:text-emerald-200'
+                    : 'bg-rose-500/15 border-rose-500/40 text-rose-800 dark:text-rose-200'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <div>
-                    <div className="font-bold">
+                    <div className="font-bold text-slate-900 dark:text-white">
                       {isWithinRadius
                         ? `Di Dalam Radius Kantor (${distanceMeter}m)`
                         : distanceMeter !== null
                         ? `Di Luar Radius Kantor (${distanceMeter}m)`
                         : 'Mendeteksi Lokasi GPS...'}
                     </div>
-                    <div className="text-[11px] opacity-80">
+                    <div className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">
                       Batas radius: {kantor?.radius_meter || 100}m dari kantor pusat STUPA
                     </div>
                   </div>
@@ -784,7 +825,7 @@ export default function PegawaiDashboard() {
                   type="button"
                   onClick={getDeviceLocation}
                   className={`p-1.5 rounded-lg transition cursor-pointer ${
-                    darkMode ? 'bg-slate-800 hover:bg-slate-700 text-sky-300' : 'bg-white hover:bg-sky-50 text-sky-700 shadow-sm'
+                    darkMode ? 'bg-slate-800 hover:bg-slate-700 text-sky-300' : 'bg-white hover:bg-sky-50 text-sky-800 shadow-sm border border-sky-200'
                   }`}
                   title="Perbarui GPS"
                 >
@@ -793,7 +834,7 @@ export default function PegawaiDashboard() {
               </div>
 
               {gpsError && (
-                <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-xs flex items-center gap-2">
+                <div className="mb-4 p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs flex items-center gap-2 font-medium">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                   <span>{gpsError}</span>
                 </div>
@@ -818,9 +859,9 @@ export default function PegawaiDashboard() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="text-center p-6 text-slate-400">
-                    <Camera className="w-12 h-12 mx-auto mb-2 text-sky-500 opacity-60" />
-                    <p className="text-xs">Klik tombol di bawah untuk mengaktifkan kamera selfie.</p>
+                  <div className="text-center p-6 text-slate-200">
+                    <Camera className="w-12 h-12 mx-auto mb-2 text-sky-400 opacity-80" />
+                    <p className="text-xs text-slate-300 font-medium">Klik tombol di bawah untuk mengaktifkan kamera selfie.</p>
                   </div>
                 )}
                 <canvas ref={canvasRef} className="hidden" />
@@ -832,7 +873,7 @@ export default function PegawaiDashboard() {
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="px-4 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow transition cursor-pointer"
+                    className="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow transition cursor-pointer"
                   >
                     <Camera className="w-4 h-4" />
                     <span>Buka Kamera Verifikasi</span>
@@ -844,7 +885,7 @@ export default function PegawaiDashboard() {
                     <button
                       type="button"
                       onClick={capturePhoto}
-                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow transition cursor-pointer"
+                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow transition cursor-pointer"
                     >
                       <Camera className="w-4 h-4" />
                       <span>Ambil Foto Selfie</span>
@@ -852,7 +893,7 @@ export default function PegawaiDashboard() {
                     <button
                       type="button"
                       onClick={stopCamera}
-                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer"
+                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer"
                     >
                       Batal
                     </button>
@@ -863,7 +904,7 @@ export default function PegawaiDashboard() {
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer"
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Foto Ulang</span>
@@ -873,60 +914,79 @@ export default function PegawaiDashboard() {
 
               {/* Notification Alerts */}
               {absenSuccessMsg && (
-                <div className="mt-4 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs flex items-center gap-2">
+                <div className="mt-4 p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 font-medium">
                   <CheckCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{absenSuccessMsg}</span>
                 </div>
               )}
 
               {absenErrorMsg && (
-                <div className="mt-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2">
+                <div className="mt-4 p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2 font-medium">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                   <span>{absenErrorMsg}</span>
                 </div>
               )}
 
-              {/* Submission Buttons - Tetap Aktif diluar jam, berubah abu-abu setelah absen atau jika hari libur */}
+              {/* Submission Buttons - Nonaktif & abu-abu jika sedang cuti/dinas yang disetujui, sudah absen, atau hari libur */}
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  disabled={submittingAbsen || !!todayAbsen?.masuk || !!todayHoliday?.is_holiday}
-                  onClick={() => handleAbsenSubmit('masuk')}
-                  className={`py-3 px-4 font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 ${
-                    todayHoliday?.is_holiday || !!todayAbsen?.masuk
-                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-none border border-slate-300 dark:border-slate-700'
-                      : 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white cursor-pointer'
-                  }`}
-                >
-                  <Clock className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">
-                    {todayHoliday?.is_holiday
-                      ? 'Hari Libur (Nonaktif)'
-                      : todayAbsen?.masuk
-                      ? 'Sudah Absen Masuk'
-                      : 'Kirim Absen Masuk'}
-                  </span>
-                </button>
+                {(() => {
+                  const isLeaveActive = !!todayApprovedPengajuan;
+                  const leaveLabel = todayApprovedPengajuan
+                    ? todayApprovedPengajuan.tipe_pengajuan === 'cuti_tahunan'
+                      ? 'Cuti Tahunan'
+                      : todayApprovedPengajuan.tipe_pengajuan === 'cuti_sakit'
+                      ? 'Cuti Sakit'
+                      : 'Dinas Luar'
+                    : '';
 
-                <button
-                  type="button"
-                  disabled={submittingAbsen || !!todayAbsen?.pulang || !!todayHoliday?.is_holiday}
-                  onClick={() => handleAbsenSubmit('pulang')}
-                  className={`py-3 px-4 font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 ${
-                    todayHoliday?.is_holiday || !!todayAbsen?.pulang
-                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-none border border-slate-300 dark:border-slate-700'
-                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white cursor-pointer'
-                  }`}
-                >
-                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">
-                    {todayHoliday?.is_holiday
-                      ? 'Hari Libur (Nonaktif)'
-                      : todayAbsen?.pulang
-                      ? 'Sudah Absen Pulang'
-                      : 'Kirim Absen Pulang'}
-                  </span>
-                </button>
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        disabled={submittingAbsen || !!todayAbsen?.masuk || !!todayHoliday?.is_holiday || isLeaveActive}
+                        onClick={() => handleAbsenSubmit('masuk')}
+                        className={`py-3 px-4 font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 ${
+                          isLeaveActive || todayHoliday?.is_holiday || !!todayAbsen?.masuk
+                            ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold cursor-not-allowed shadow-none border border-slate-300 dark:border-slate-700'
+                            : 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white cursor-pointer'
+                        }`}
+                      >
+                        <Clock className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">
+                          {isLeaveActive
+                            ? `Sedang ${leaveLabel} (Disetujui)`
+                            : todayHoliday?.is_holiday
+                            ? 'Hari Libur (Nonaktif)'
+                            : todayAbsen?.masuk
+                            ? 'Sudah Absen Masuk'
+                            : 'Kirim Absen Masuk'}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={submittingAbsen || !!todayAbsen?.pulang || !!todayHoliday?.is_holiday || isLeaveActive}
+                        onClick={() => handleAbsenSubmit('pulang')}
+                        className={`py-3 px-4 font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5 ${
+                          isLeaveActive || todayHoliday?.is_holiday || !!todayAbsen?.pulang
+                            ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold cursor-not-allowed shadow-none border border-slate-300 dark:border-slate-700'
+                            : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white cursor-pointer'
+                        }`}
+                      >
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">
+                          {isLeaveActive
+                            ? `Sedang ${leaveLabel} (Disetujui)`
+                            : todayHoliday?.is_holiday
+                            ? 'Hari Libur (Nonaktif)'
+                            : todayAbsen?.pulang
+                            ? 'Sudah Absen Pulang'
+                            : 'Kirim Absen Pulang'}
+                        </span>
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -948,20 +1008,22 @@ export default function PegawaiDashboard() {
 
                 <div
                   className={`p-4 rounded-2xl border transition ${
-                    darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/50 border-sky-100'
+                    darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/70 border-sky-200'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                       Presensi Masuk
                     </span>
                     <span
                       className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
                         todayAbsen?.masuk
                           ? todayAbsen.masuk.status === 'tepat_waktu'
-                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : todayAbsen.masuk.status === 'terlambat'
+                            ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                            : 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300'
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       {todayAbsen?.masuk
@@ -976,7 +1038,7 @@ export default function PegawaiDashboard() {
                         <img
                           src={todayAbsen.masuk.url_foto_cloudinary}
                           alt="Foto Masuk"
-                          className="w-12 h-12 rounded-xl object-cover border border-sky-200 dark:border-slate-700"
+                          className="w-12 h-12 rounded-xl object-cover border border-sky-300 dark:border-slate-700"
                         />
                       )}
                       <div>
@@ -988,11 +1050,15 @@ export default function PegawaiDashboard() {
                           })}{' '}
                           WITA
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                           {todayAbsen.masuk.waktu_terlambat > 0 ? (
-                            <span className="text-rose-600 dark:text-rose-400 font-semibold">
+                            <span className="text-rose-600 dark:text-rose-400 font-bold">
                               Terlambat {todayAbsen.masuk.waktu_terlambat} menit (-Rp{' '}
                               {(todayAbsen.masuk.waktu_terlambat * 500).toLocaleString('id-ID')})
+                            </span>
+                          ) : todayAbsen.masuk.status === 'cuti_tahunan' || todayAbsen.masuk.status === 'cuti_sakit' || todayAbsen.masuk.status === 'dinas_luar' ? (
+                            <span className="text-sky-700 dark:text-sky-300 font-bold">
+                              {todayAbsen.masuk.catatan || 'Sistem Otomatis (Cuti/Dinas)'}
                             </span>
                           ) : (
                             'Tepat Waktu'
@@ -1001,26 +1067,28 @@ export default function PegawaiDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500">Ambil selfie dan klik Absen Masuk.</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Ambil selfie dan klik Absen Masuk.</p>
                   )}
                 </div>
 
                 <div
                   className={`p-4 rounded-2xl border transition ${
-                    darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/50 border-sky-100'
+                    darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/70 border-sky-200'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                       Presensi Pulang
                     </span>
                     <span
                       className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
                         todayAbsen?.pulang
                           ? todayAbsen.pulang.status === 'tepat_waktu'
-                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : todayAbsen.pulang.status === 'mendahului'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                            : 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300'
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       {todayAbsen?.pulang
@@ -1035,7 +1103,7 @@ export default function PegawaiDashboard() {
                         <img
                           src={todayAbsen.pulang.url_foto_cloudinary}
                           alt="Foto Pulang"
-                          className="w-12 h-12 rounded-xl object-cover border border-sky-200 dark:border-slate-700"
+                          className="w-12 h-12 rounded-xl object-cover border border-sky-300 dark:border-slate-700"
                         />
                       )}
                       <div>
@@ -1047,11 +1115,15 @@ export default function PegawaiDashboard() {
                           })}{' '}
                           WITA
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                           {todayAbsen.pulang.waktu_mendahului > 0 ? (
-                            <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                            <span className="text-amber-600 dark:text-amber-400 font-bold">
                               Mendahului {todayAbsen.pulang.waktu_mendahului} menit (-Rp{' '}
                               {(todayAbsen.pulang.waktu_mendahului * 500).toLocaleString('id-ID')})
+                            </span>
+                          ) : todayAbsen.pulang.status === 'cuti_tahunan' || todayAbsen.pulang.status === 'cuti_sakit' || todayAbsen.pulang.status === 'dinas_luar' ? (
+                            <span className="text-sky-700 dark:text-sky-300 font-bold">
+                              {todayAbsen.pulang.catatan || 'Sistem Otomatis (Cuti/Dinas)'}
                             </span>
                           ) : (
                             'Sesuai Jam Kerja'
@@ -1060,28 +1132,28 @@ export default function PegawaiDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500">Tersedia pada jadwal jam pulang.</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Tersedia pada jadwal jam pulang.</p>
                   )}
                 </div>
               </div>
 
               {/* Office Policy Card */}
               <div
-                className={`border rounded-3xl p-5 shadow-sm text-xs space-y-2 transition ${
-                  darkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-sky-200/80 text-slate-600'
+                className={`border rounded-3xl p-5 shadow-sm text-xs space-y-2.5 transition ${
+                  darkMode ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-sky-200 text-slate-800'
                 }`}
               >
-                <div className={`font-semibold flex items-center gap-1.5 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                <div className={`font-bold text-sm flex items-center gap-1.5 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                   <Shield className="w-4 h-4 text-sky-500" />
                   <span>Jadwal & Ketentuan Presensi STUPA:</span>
                 </div>
-                <ul className="list-disc list-inside space-y-1 pl-1">
+                <ul className="list-disc list-inside space-y-1 pl-1 font-medium text-slate-700 dark:text-slate-200">
                   <li>Mulai Absen Masuk: {kantor?.jam_masuk_mulai?.substring(0, 5) || '06:30'} WITA</li>
                   <li>Batas Akhir Masuk: {kantor?.jam_masuk_akhir?.substring(0, 5) || '07:30'} WITA (Lewat = Terlambat)</li>
                   <li>Pulang Senin-Kamis: Mulai {kantor?.jam_pulang_senin_kamis_mulai?.substring(0, 5) || '15:30'} WITA</li>
                   <li>Pulang Hari Jumat: Mulai {kantor?.jam_pulang_jumat_mulai?.substring(0, 5) || '13:00'} WITA</li>
                   <li>Batas Akhir Pulang: {kantor?.jam_pulang_akhir?.substring(0, 5) || '18:00'} WITA (Sistem Tertutup)</li>
-                  <li>Denda Disiplin: potongan per menit keterlambatan / kepulangan mendahului.</li>
+                  <li>Denda Disiplin: pengurangan Rp 500 per menit keterlambatan atau mendahului.</li>
                   <li>Radius Geofencing: Maksimal {kantor?.radius_meter || 100} meter dari kantor.</li>
                 </ul>
               </div>
@@ -1106,7 +1178,7 @@ export default function PegawaiDashboard() {
                   <Clock className="w-5 h-5 text-sky-500" />
                   <span>Riwayat Presensi Pegawai</span>
                 </h2>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p className={`text-xs font-medium ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
                   Lihat riwayat kehadiran Anda berdasarkan bulan dan tahun.
                 </p>
               </div>
@@ -1120,8 +1192,8 @@ export default function PegawaiDashboard() {
                     setFilterBulan(b);
                     fetchHistoryWithFilters(b, filterTahun);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium focus:outline-none ${
-                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50 border border-sky-200 text-slate-800'
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold focus:outline-none ${
+                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-white border border-sky-300 text-slate-900 shadow-sm'
                   }`}
                 >
                   {bulanOptions.map((b) => (
@@ -1138,8 +1210,8 @@ export default function PegawaiDashboard() {
                     setFilterTahun(y);
                     fetchHistoryWithFilters(filterBulan, y);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium focus:outline-none ${
-                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50 border border-sky-200 text-slate-800'
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold focus:outline-none ${
+                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-white border border-sky-300 text-slate-900 shadow-sm'
                   }`}
                 >
                   {tahunOptions.map((t) => (
@@ -1154,34 +1226,34 @@ export default function PegawaiDashboard() {
             {/* Denda Summary Badge Bulan Terpilih */}
             <div
               className={`mb-4 p-3.5 rounded-2xl border flex items-center justify-between text-xs transition ${
-                darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/50 border-sky-100'
+                darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/80 border-sky-200'
               }`}
             >
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 text-amber-500" />
-                <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>
+                <span className={darkMode ? 'text-slate-200 font-semibold' : 'text-slate-900 font-bold'}>
                   Total Potongan Keterlambatan Bulan Ini:
                 </span>
               </div>
-              <div className="font-bold text-rose-600 dark:text-rose-400">
+              <div className="font-extrabold text-rose-700 dark:text-rose-400">
                 Rp {totalDendaBulanIni.toLocaleString('id-ID')}
               </div>
             </div>
 
             {loadingHistory ? (
-              <div className="py-12 text-center text-slate-500 text-xs">Memuat data riwayat presensi...</div>
+              <div className="py-12 text-center text-slate-700 dark:text-slate-300 font-medium text-xs">Memuat data riwayat presensi...</div>
             ) : history.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 text-xs">
+              <div className="py-12 text-center text-slate-700 dark:text-slate-300 font-medium text-xs">
                 Tidak ada rekaman presensi pada bulan ini.
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-sky-100 dark:border-slate-800">
+              <div className="overflow-x-auto rounded-2xl border border-sky-200 dark:border-slate-800">
                 <table className="w-full text-left text-xs">
                   <thead
-                    className={`uppercase font-semibold border-b ${
+                    className={`uppercase font-bold border-b ${
                       darkMode
-                        ? 'bg-slate-800/80 text-slate-400 border-slate-800'
-                        : 'bg-sky-100/70 text-sky-900 border-sky-200'
+                        ? 'bg-slate-800 text-slate-100 border-slate-700'
+                        : 'bg-sky-100 text-sky-950 border-sky-300'
                     }`}
                   >
                     <tr>
@@ -1195,7 +1267,7 @@ export default function PegawaiDashboard() {
                   </thead>
                   <tbody
                     className={`divide-y ${
-                      darkMode ? 'divide-slate-800 text-slate-300' : 'divide-sky-100 text-slate-700'
+                      darkMode ? 'divide-slate-800 text-slate-100' : 'divide-sky-100 text-slate-900'
                     }`}
                   >
                     {history.map((h) => {
@@ -1204,7 +1276,7 @@ export default function PegawaiDashboard() {
                       return (
                         <tr
                           key={h.id}
-                          className={`transition ${darkMode ? 'hover:bg-slate-800/40' : 'hover:bg-sky-50/50'}`}
+                          className={`transition ${darkMode ? 'hover:bg-slate-800/40' : 'hover:bg-sky-50/70'}`}
                         >
                           <td className="py-3 px-4">
                             {h.url_foto_cloudinary ? (
@@ -1212,15 +1284,15 @@ export default function PegawaiDashboard() {
                                 <img
                                   src={h.url_foto_cloudinary}
                                   alt="Selfie"
-                                  className="w-10 h-10 rounded-xl object-cover border border-sky-200 dark:border-slate-700 shadow-sm"
+                                  className="w-10 h-10 rounded-xl object-cover border border-sky-300 dark:border-slate-700 shadow-sm"
                                 />
                               </a>
                             ) : (
-                              <span className="text-slate-400">-</span>
+                              <span className="text-slate-400 font-medium">-</span>
                             )}
                           </td>
                           <td className="py-3 px-4">
-                            <div className={`font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                            <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                               {new Date(h.waktu_absen).toLocaleDateString('id-ID', {
                                 weekday: 'short',
                                 day: 'numeric',
@@ -1228,35 +1300,39 @@ export default function PegawaiDashboard() {
                                 year: 'numeric',
                               })}
                             </div>
-                            <div className="text-[11px] text-slate-500">
+                            <div className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">
                               {new Date(h.waktu_absen).toLocaleTimeString('id-ID')} WITA
                             </div>
                           </td>
-                          <td className="py-3 px-4 font-bold uppercase">{h.tipe_absen}</td>
+                          <td className="py-3 px-4 font-extrabold uppercase text-slate-900 dark:text-white">{h.tipe_absen}</td>
                           <td className="py-3 px-4">
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
                                 h.status === 'tepat_waktu'
-                                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                  ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
                                   : h.status === 'terlambat'
-                                  ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                                  ? 'bg-rose-100 text-rose-900 dark:bg-rose-950/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
                                   : h.status === 'mendahului'
-                                  ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                                  : 'bg-sky-500/15 text-sky-600 dark:text-sky-400'
+                                  ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+                                  : h.status === 'cuti_tahunan' || h.status === 'cuti'
+                                  ? 'bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-200 border border-blue-300 dark:border-blue-700'
+                                  : h.status === 'cuti_sakit' || h.status === 'sakit'
+                                  ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+                                  : 'bg-purple-100 text-purple-900 dark:bg-purple-950/60 dark:text-purple-200 border border-purple-300 dark:border-purple-700'
                               }`}
                             >
-                              {h.status.replace('_', ' ').toUpperCase()}
+                              {h.status?.replace('_', ' ').toUpperCase()}
                             </span>
                           </td>
-                          <td className="py-3 px-4">{h.jarak_dari_kantor ? `${h.jarak_dari_kantor} m` : '-'}</td>
+                          <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">{h.jarak_dari_kantor ? `${h.jarak_dari_kantor} m` : '-'}</td>
                           <td className="py-3 px-4 text-right font-medium">
                             {totalMenit > 0 ? (
-                              <span className="text-rose-600 dark:text-rose-400 font-bold">
+                              <span className="text-rose-700 dark:text-rose-400 font-extrabold">
                                 -Rp {denda.toLocaleString('id-ID')}{' '}
-                                <span className="text-[10px] text-slate-400 font-normal">({totalMenit}m)</span>
+                                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">({totalMenit}m)</span>
                               </span>
                             ) : (
-                              <span className="text-emerald-600 dark:text-emerald-400">Rp 0</span>
+                              <span className="text-emerald-700 dark:text-emerald-400 font-bold">Rp 0</span>
                             )}
                           </td>
                         </tr>
@@ -1305,14 +1381,14 @@ export default function PegawaiDashboard() {
 
               <form onSubmit={handleSubmitPengajuan} className="space-y-4 text-xs">
                 <div>
-                  <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                  <label className="block font-bold mb-1.5 text-slate-900 dark:text-slate-100">
                     Tipe Pengajuan
                   </label>
                   <select
                     value={tipePengajuan}
                     onChange={(e: any) => setTipePengajuan(e.target.value)}
-                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                      darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                      darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/70 border border-sky-300 text-slate-900'
                     }`}
                   >
                     <option value="cuti_tahunan">Cuti Tahunan</option>
@@ -1323,7 +1399,7 @@ export default function PegawaiDashboard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                    <label className="block font-bold mb-1.5 text-slate-900 dark:text-slate-100">
                       Tanggal Mulai
                     </label>
                     <input
@@ -1331,13 +1407,13 @@ export default function PegawaiDashboard() {
                       required
                       value={tglMulai}
                       onChange={(e) => setTglMulai(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                        darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/70 border border-sky-300 text-slate-900'
                       }`}
                     />
                   </div>
                   <div>
-                    <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                    <label className="block font-bold mb-1.5 text-slate-900 dark:text-slate-100">
                       Tanggal Selesai
                     </label>
                     <input
@@ -1345,29 +1421,29 @@ export default function PegawaiDashboard() {
                       required
                       value={tglSelesai}
                       onChange={(e) => setTglSelesai(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                        darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/70 border border-sky-300 text-slate-900'
                       }`}
                     />
                   </div>
                 </div>
 
                 {tipePengajuan === 'cuti_tahunan' && (
-                  <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-700 dark:text-sky-300 text-[11px]">
-                    ℹ️ Kuota cuti Anda tersisa: <strong>{user?.sisa_cuti_tahunan} hari</strong>. Sabtu & Minggu tidak memotong kuota.
+                  <div className="p-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-950 dark:text-sky-200 text-[11px] font-medium">
+                    ℹ️ Kuota cuti Anda tersisa: <strong>{user?.sisa_cuti_tahunan} hari</strong>. Hari Sabtu & Minggu tidak memotong kuota cuti.
                   </div>
                 )}
 
                 {(tipePengajuan === 'cuti_sakit' || tipePengajuan === 'dinas_luar') && (
                   <div>
-                    <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                    <label className="block font-bold mb-1.5 text-slate-900 dark:text-slate-100">
                       Unggah Berkas Pendukung (Surat Dokter / Surat Tugas) *
                     </label>
                     <div
                       className={`border-2 border-dashed rounded-xl p-3 text-center transition ${
                         darkMode
                           ? 'border-slate-700 bg-slate-800/50 hover:bg-slate-800'
-                          : 'border-sky-200 bg-sky-50/40 hover:bg-sky-50'
+                          : 'border-sky-300 bg-sky-50/60 hover:bg-sky-100'
                       }`}
                     >
                       <input
@@ -1379,9 +1455,9 @@ export default function PegawaiDashboard() {
                         id="dokumen-upload"
                       />
                       <label htmlFor="dokumen-upload" className="cursor-pointer flex flex-col items-center">
-                        <Upload className="w-5 h-5 text-sky-500 mb-1" />
-                        <span className="text-xs text-sky-600 dark:text-sky-400 font-semibold">Pilih Berkas / Foto</span>
-                        <span className="text-[10px] text-slate-400 mt-0.5">
+                        <Upload className="w-5 h-5 text-sky-600 dark:text-sky-400 mb-1" />
+                        <span className="text-xs text-sky-700 dark:text-sky-300 font-bold">Pilih Berkas / Foto</span>
+                        <span className="text-[10px] text-slate-700 dark:text-slate-300 mt-0.5 font-medium">
                           {dokumenFileName || 'PNG, JPG, PDF (Maks 5MB)'}
                         </span>
                       </label>
@@ -1390,7 +1466,7 @@ export default function PegawaiDashboard() {
                 )}
 
                 <div>
-                  <label className="block font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                  <label className="block font-bold mb-1.5 text-slate-900 dark:text-slate-100">
                     Alasan / Keterangan
                   </label>
                   <textarea
@@ -1399,10 +1475,10 @@ export default function PegawaiDashboard() {
                     value={alasan}
                     onChange={(e) => setAlasan(e.target.value)}
                     placeholder="Tuliskan keterangan detail pengajuan..."
-                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
                       darkMode
-                        ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-500'
-                        : 'bg-sky-50/50 border border-sky-200 text-slate-800 placeholder-slate-400'
+                        ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400'
+                        : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
                     }`}
                   />
                 </div>
@@ -1410,7 +1486,7 @@ export default function PegawaiDashboard() {
                 <button
                   type="submit"
                   disabled={submittingPengajuan}
-                  className="w-full py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold rounded-xl text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
+                  className="w-full py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
                 >
                   {submittingPengajuan ? 'Mengirim Pengajuan...' : 'Kirim Pengajuan'}
                 </button>
@@ -1419,7 +1495,7 @@ export default function PegawaiDashboard() {
 
             <div
               className={`lg:col-span-7 border rounded-3xl p-5 sm:p-6 shadow-sm transition ${
-                darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-sky-200/80'
+                darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-sky-200'
               }`}
             >
               <h2
@@ -1432,7 +1508,7 @@ export default function PegawaiDashboard() {
               </h2>
 
               {pengajuanList.length === 0 ? (
-                <div className="py-12 text-center text-slate-500 text-xs">
+                <div className="py-12 text-center text-slate-700 dark:text-slate-300 font-medium text-xs">
                   Belum ada pengajuan cuti atau dinas yang diajukan.
                 </div>
               ) : (
@@ -1441,34 +1517,34 @@ export default function PegawaiDashboard() {
                     <div
                       key={p.id}
                       className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs transition ${
-                        darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/40 border-sky-100'
+                        darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/60 border-sky-200'
                       }`}
                     >
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                          <span className={`font-extrabold text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                             {p.tipe_pengajuan.replace('_', ' ').toUpperCase()}
                           </span>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                               p.status_approval === 'approved'
-                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
                                 : p.status_approval === 'rejected'
-                                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                ? 'bg-rose-100 text-rose-900 dark:bg-rose-950/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
+                                : 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
                             }`}
                           >
                             {p.status_approval.toUpperCase()}
                           </span>
                         </div>
-                        <div className="text-slate-500">
+                        <div className="text-slate-700 dark:text-slate-300 font-semibold">
                           {p.tanggal_mulai} s/d {p.tanggal_selesai} ({p.jumlah_hari_kerja} Hari Kerja)
                         </div>
-                        <div className={`mt-1 italic ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                        <div className={`mt-1 italic ${darkMode ? 'text-slate-200' : 'text-slate-800 font-medium'}`}>
                           "{p.alasan}"
                         </div>
                         {p.catatan_admin && (
-                          <div className="text-sky-600 dark:text-sky-300 mt-1 text-[11px]">
+                          <div className="text-sky-800 dark:text-sky-300 mt-1 text-[11px] font-semibold">
                             Catatan Admin: {p.catatan_admin}
                           </div>
                         )}
@@ -1512,16 +1588,16 @@ export default function PegawaiDashboard() {
               <User className="w-5 h-5 text-sky-500" />
               <span>Pengaturan Profil Pegawai & Kata Sandi</span>
             </h2>
-            <p className={`text-xs mb-6 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className={`text-xs mb-6 font-medium ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
               Perbarui biodata kontak, foto profil, atau ganti kata sandi login akun Anda secara mandiri.
             </p>
 
             {profileMsg && (
               <div
-                className={`mb-5 p-3.5 rounded-xl text-xs flex items-center gap-2.5 ${
+                className={`mb-5 p-3.5 rounded-xl text-xs flex items-center gap-2.5 font-medium ${
                   profileMsg.type === 'success'
-                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300'
-                    : 'bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300'
+                    ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-800 dark:text-emerald-200'
+                    : 'bg-rose-500/15 border border-rose-500/40 text-rose-800 dark:text-rose-200'
                 }`}
               >
                 {profileMsg.type === 'success' ? (
@@ -1555,10 +1631,10 @@ export default function PegawaiDashboard() {
                 </div>
 
                 <div className="space-y-1.5 text-center sm:text-left">
-                  <div className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                  <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                     Foto Profil Pegawai
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">
                     Format file JPG, PNG maks 3MB. Disimpan aman di Cloudinary.
                   </p>
                   <div>
@@ -1571,10 +1647,10 @@ export default function PegawaiDashboard() {
                     />
                     <label
                       htmlFor="profile-pic"
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-xl font-semibold cursor-pointer transition ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-xl font-bold cursor-pointer transition ${
                         darkMode
                           ? 'bg-slate-800 border-slate-700 text-sky-300 hover:bg-slate-700'
-                          : 'bg-sky-50 border-sky-200 text-sky-700 hover:bg-sky-100 shadow-sm'
+                          : 'bg-sky-50 border-sky-300 text-sky-800 hover:bg-sky-100 shadow-sm'
                       }`}
                     >
                       <Camera className="w-3.5 h-3.5" />
@@ -1587,7 +1663,7 @@ export default function PegawaiDashboard() {
               {/* Biodata Fields */}
               <div className="space-y-3.5">
                 <div>
-                  <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
                     Nama Lengkap
                   </label>
                   <input
@@ -1595,44 +1671,44 @@ export default function PegawaiDashboard() {
                     required
                     value={profileForm.nama}
                     onChange={(e) => setProfileForm({ ...profileForm, nama: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                      darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                    className={`w-full px-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                      darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/70 border border-sky-300 text-slate-900'
                     }`}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
                       Nomor HP / WhatsApp
                     </label>
                     <div className="relative">
-                      <Phone className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400 pointer-events-none" />
+                      <Phone className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500 dark:text-slate-400 pointer-events-none" />
                       <input
                         type="text"
                         value={profileForm.no_hp}
                         onChange={(e) => setProfileForm({ ...profileForm, no_hp: e.target.value })}
                         placeholder="081234567890"
-                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                          darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
                         }`}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
                       Alamat Tinggal
                     </label>
                     <div className="relative">
-                      <Home className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400 pointer-events-none" />
+                      <Home className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500 dark:text-slate-400 pointer-events-none" />
                       <input
                         type="text"
                         value={profileForm.alamat}
                         onChange={(e) => setProfileForm({ ...profileForm, alamat: e.target.value })}
                         placeholder="Denpasar, Bali"
-                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                          darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
                         }`}
                       />
                     </div>
@@ -1646,13 +1722,13 @@ export default function PegawaiDashboard() {
                   darkMode ? 'border-slate-800' : 'border-sky-100'
                 }`}
               >
-                <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold">
+                <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-extrabold text-xs">
                   <Lock className="w-4 h-4" />
                   <span>Ubah Kata Sandi (Kosongkan jika tidak ingin mengubah)</span>
                 </div>
 
                 <div>
-                  <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+                  <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
                     Kata Sandi Saat Ini
                   </label>
                   <div className="relative">
@@ -1661,14 +1737,14 @@ export default function PegawaiDashboard() {
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       placeholder="Masukkan kata sandi lama Anda"
-                      className={`w-full px-3.5 pr-10 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                        darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                      className={`w-full px-3.5 pr-10 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                      className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white cursor-pointer"
                     >
                       {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -1677,7 +1753,7 @@ export default function PegawaiDashboard() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
                       Kata Sandi Baru
                     </label>
                     <div className="relative">
@@ -1686,14 +1762,14 @@ export default function PegawaiDashboard() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Minimal 6 karakter"
-                        className={`w-full px-3.5 pr-10 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                          darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                        className={`w-full px-3.5 pr-10 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
                         }`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                        className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white cursor-pointer"
                       >
                         {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -1701,7 +1777,7 @@ export default function PegawaiDashboard() {
                   </div>
 
                   <div>
-                    <label className="block font-medium mb-1 text-slate-700 dark:text-slate-300">
+                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
                       Konfirmasi Sandi Baru
                     </label>
                     <input
@@ -1709,8 +1785,8 @@ export default function PegawaiDashboard() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Ketik ulang kata sandi baru"
-                      className={`w-full px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                        darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/50 border border-sky-200 text-slate-800'
+                      className={`w-full px-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
                       }`}
                     />
                   </div>
@@ -1721,7 +1797,7 @@ export default function PegawaiDashboard() {
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
                 >
                   {savingProfile ? 'Menyimpan Perubahan...' : 'Simpan Perubahan Profil'}
                 </button>

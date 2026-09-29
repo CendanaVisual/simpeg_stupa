@@ -180,6 +180,8 @@ export async function GET(req: NextRequest) {
       let totalTerlambat = 0;
       let totalMendahului = 0;
       let totalDinasLuar = 0;
+      let totalCuti = 0;
+      let totalSakit = 0;
       let totalAlphaMasuk = 0;
       let totalAlphaPulang = 0;
       let totalMenitTerlambat = 0;
@@ -189,8 +191,16 @@ export async function GET(req: NextRequest) {
       for (const log of rawAbsensiLogs) {
         if (log.pegawai_id !== p.id) continue;
         if (log.tipe_absen === 'masuk') {
-          totalHadir++;
-          if (log.status === 'tepat_waktu') hadirTepatWaktu++;
+          if (log.status === 'cuti_tahunan' || log.status === 'cuti') {
+            totalCuti++;
+          } else if (log.status === 'cuti_sakit' || log.status === 'sakit') {
+            totalSakit++;
+          } else if (log.status === 'dinas_luar') {
+            totalDinasLuar++;
+          } else {
+            totalHadir++;
+            if (log.status === 'tepat_waktu') hadirTepatWaktu++;
+          }
         }
         if (log.status === 'terlambat') {
           totalTerlambat++;
@@ -199,9 +209,6 @@ export async function GET(req: NextRequest) {
         if (log.status === 'mendahului') {
           totalMendahului++;
           totalMenitMendahului += (log.waktu_mendahului || 0);
-        }
-        if (log.status === 'dinas_luar') {
-          totalDinasLuar++;
         }
       }
 
@@ -290,6 +297,8 @@ export async function GET(req: NextRequest) {
         total_terlambat: totalTerlambat,
         total_mendahului: totalMendahului,
         total_dinas_luar: totalDinasLuar,
+        total_cuti: totalCuti,
+        total_sakit: totalSakit,
         total_alpha_masuk: totalAlphaMasuk,
         total_alpha_pulang: totalAlphaPulang,
         total_menit_keterlambatan: totalMenitTerlambat,
@@ -317,6 +326,8 @@ export async function GET(req: NextRequest) {
       terlambat: combinedLogs.filter((l: any) => l.status === 'terlambat' && !l.is_alpha).length,
       mendahului: combinedLogs.filter((l: any) => l.status === 'mendahului' && !l.is_alpha).length,
       dinas_luar: combinedLogs.filter((l: any) => l.status === 'dinas_luar').length,
+      cuti: combinedLogs.filter((l: any) => l.status === 'cuti_tahunan' || l.status === 'cuti').length,
+      sakit: combinedLogs.filter((l: any) => l.status === 'cuti_sakit' || l.status === 'sakit').length,
       total_alpha: alphaLogs.length,
       total_hari_kerja_efektif: daftarHariKerja.length,
       total_menit_terlambat: summaryPerPegawai.reduce((acc, p) => acc + p.total_menit_keterlambatan, 0),
