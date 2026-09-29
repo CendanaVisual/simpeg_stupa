@@ -2287,7 +2287,7 @@ export default function AdminDashboard() {
                       <p className="m-0">Mengetahui,</p>
                       <p className="font-bold m-0 mt-1">Kepala SD Negeri 7 Pedungan</p>
                       <div className="h-16" />
-                      <p className="font-bold underline m-0">Made Wahyuni Indrawati, S.Pd., M.Pd</p>
+                      <p className="font-bold underline m-0">Made Wahyuni Indrawati, S.Pd.SD., M.Pd</p>
                       <p className="m-0 text-[10px]">NIP. 197011072007012031</p>
                     </td>
                     <td className="w-1/2 text-center" style={{ border: 'none' }}>
@@ -2301,8 +2301,8 @@ export default function AdminDashboard() {
                       </p>
                       <p className="font-bold m-0 mt-1">Staff TU/Bendahara Gaji</p>
                       <div className="h-16" />
-                      <p className="font-bold underline m-0">...............................................</p>
-                      <p className="m-0 text-[10px]">NIP. ...................</p>
+                      <p className="font-bold underline m-0">...............................................................</p>
+                      <p className="m-0 text-[10px]">NIP. ..............................................</p>
                     </td>
                   </tr>
                 </tbody>
