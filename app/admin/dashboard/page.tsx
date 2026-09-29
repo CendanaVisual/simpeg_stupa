@@ -1943,16 +1943,16 @@ export default function AdminDashboard() {
                     </td>
                     <td className="text-center align-middle pl-2" style={{ border: 'none' }}>
                       <h3 className="text-xs uppercase tracking-widest font-normal text-black m-0">
-                        PEMERINTAH PROVINSI BALI
+                        PEMERINTAH KOTA DENPASAR
                       </h3>
                       <h2 className="text-sm font-bold uppercase text-black m-0 mt-0.5">
-                        DINAS PENDIDIKAN, KEPEMUDAAN DAN OLAHRAGA
+                        DINAS PENDIDIKAN KEPEMUDAAN DAN OLAHRAGA KOTA DENPASAR
                       </h2>
                       <h1 className="text-lg font-black uppercase text-black m-0 mt-0.5">
-                        SEKOLAH TINGGI UNGGULAN PEDUNGAN (STUPA)
+                        SEKOLAH DASAR NEGERI 7 PEDUNGAN
                       </h1>
                       <p className="text-[10px] italic text-black m-0 mt-0.5">
-                        Jl. Bypass Ngurah Rai No. 7, Pedungan, Denpasar Selatan, Bali 80222 | Telp: (0361) 720123 | Website: stupa.ac.id
+                        Jalan Pulau Moyo No. 63 Pedungan, Denpasar Selatan, Bali 80222 | Telp: (0361)725176
                       </p>
                     </td>
                   </tr>
@@ -1961,7 +1961,7 @@ export default function AdminDashboard() {
 
               <div className="text-center mb-4">
                 <h2 className="text-sm font-bold uppercase underline text-black">
-                  LAPORAN REKAPITULASI PRESENSI & PERHITUNGAN POTONGAN GAJI PEGAWAI
+                  LAPORAN REKAPITULASI ABSENSI & PERHITUNGAN POTONGAN DISIPLIN PEGAWAI
                 </h2>
                 <p className="text-xs text-black mt-1">
                   Periode: Bulan {bulanOptions.find((b) => b.val === filterBulan)?.label} Tahun {filterTahun}
@@ -1981,7 +1981,7 @@ export default function AdminDashboard() {
               >
                 <span>Ringkasan Disiplin & Akumulasi Denda Per Pegawai</span>
                 <span className="text-xs font-normal text-slate-600 dark:text-slate-400 print:text-black">
-                  Tarif Denda: <strong>Rp 500 / Menit</strong> (Alpha Masuk = 200m, Alpha Pulang = 200m)
+                  Potongan Disiplin: <strong>Per Menit</strong> (Tidak Absen Masuk = 200m, Tidak Absen Pulang = 200m)
                 </span>
               </h3>
               <div className="overflow-x-auto">
@@ -2079,7 +2079,7 @@ export default function AdminDashboard() {
                   darkMode ? 'text-white' : 'text-slate-900'
                 } print:text-black`}
               >
-                Log Detail Presensi & Pengurangan Gaji (1 Menit = Rp 500)
+                Log Detail Presensi & Potongan Gaji Pegawai
               </h3>
               <div className="overflow-x-auto">
                 <table
