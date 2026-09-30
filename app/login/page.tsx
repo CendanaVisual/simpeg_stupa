@@ -15,10 +15,14 @@ export default function LoginPage() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('sipeg_theme');
-    if (savedTheme === 'dark') {
-      setDarkMode(true);
-    } else {
-      setDarkMode(false);
+    const isDark = savedTheme === 'dark';
+    setDarkMode(isDark);
+    if (typeof document !== 'undefined') {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, []);
 
@@ -26,6 +30,13 @@ export default function LoginPage() {
     const newTheme = !darkMode;
     setDarkMode(newTheme);
     localStorage.setItem('sipeg_theme', newTheme ? 'dark' : 'light');
+    if (typeof document !== 'undefined') {
+      if (newTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {

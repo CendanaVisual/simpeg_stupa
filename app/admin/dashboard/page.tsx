@@ -95,10 +95,14 @@ export default function AdminDashboard() {
   // Load Theme Preference
   useEffect(() => {
     const savedTheme = localStorage.getItem('sipeg_theme');
-    if (savedTheme === 'dark') {
-      setDarkMode(true);
-    } else {
-      setDarkMode(false);
+    const isDark = savedTheme === 'dark';
+    setDarkMode(isDark);
+    if (typeof document !== 'undefined') {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, []);
 
@@ -106,6 +110,13 @@ export default function AdminDashboard() {
     const newTheme = !darkMode;
     setDarkMode(newTheme);
     localStorage.setItem('sipeg_theme', newTheme ? 'dark' : 'light');
+    if (typeof document !== 'undefined') {
+      if (newTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
   };
 
   // Load Admin User
@@ -668,13 +679,13 @@ export default function AdminDashboard() {
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase text-sky-900 dark:text-sky-300">Total Pegawai</span>
+              <span className="text-xs font-black uppercase tracking-wider text-sky-950 dark:text-sky-300">Total Pegawai</span>
               <Users className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             </div>
-            <div className={`text-2xl font-extrabold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+            <div className={`text-3xl font-black ${darkMode ? 'text-white' : 'text-slate-950'}`}>
               {pegawaiList.filter((p) => p.role === 'pegawai').length}
             </div>
-            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">Terdaftar di Manajemen Pegawai</span>
+            <span className="text-xs text-slate-800 dark:text-slate-300 font-bold">Terdaftar di Manajemen Pegawai</span>
           </div>
 
           <div
@@ -683,13 +694,13 @@ export default function AdminDashboard() {
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase text-amber-900 dark:text-amber-300">Pending Approval</span>
+              <span className="text-xs font-black uppercase tracking-wider text-amber-950 dark:text-amber-300">Pending Approval</span>
               <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             </div>
-            <div className="text-2xl font-extrabold text-amber-700 dark:text-amber-400">
+            <div className="text-3xl font-black text-amber-600 dark:text-amber-400">
               {pendingApprovals.length}
             </div>
-            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">Menunggu persetujuan</span>
+            <span className="text-xs text-slate-800 dark:text-slate-300 font-bold">Menunggu persetujuan</span>
           </div>
 
           <div
@@ -698,13 +709,13 @@ export default function AdminDashboard() {
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase text-emerald-900 dark:text-emerald-300">Hadir Tepat Waktu</span>
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-300">Hadir Tepat Waktu</span>
               <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">
+            <div className="text-3xl font-black text-emerald-700 dark:text-emerald-400">
               {rekapData?.stats?.tepat_waktu ?? 0}
             </div>
-            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+            <span className="text-xs text-slate-800 dark:text-slate-300 font-bold">
               Bulan {bulanOptions.find((b) => b.val === filterBulan)?.label}
             </span>
           </div>
@@ -715,13 +726,13 @@ export default function AdminDashboard() {
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase text-rose-900 dark:text-rose-300">Total Potongan Disiplin</span>
+              <span className="text-xs font-black uppercase tracking-wider text-rose-950 dark:text-rose-300">Total Potongan Disiplin</span>
               <Coins className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             </div>
-            <div className="text-2xl font-extrabold text-rose-700 dark:text-rose-400">
+            <div className="text-3xl font-black text-rose-600 dark:text-rose-400">
               Rp {(rekapData?.stats?.total_potongan_gaji_rp || 0).toLocaleString('id-ID')}
             </div>
-            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">Denda Per Menit Pelanggaran</span>
+            <span className="text-xs text-slate-800 dark:text-slate-300 font-bold">Denda Per Menit Pelanggaran</span>
           </div>
         </div>
 
@@ -867,17 +878,17 @@ export default function AdminDashboard() {
                   >
                     <div className="space-y-1.5 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`font-bold text-base ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        <span className={`font-bold text-base ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                           {p.nama_pegawai}
                         </span>
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">({p.nip || 'NIP: -'})</span>
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-300">({p.nip || 'NIP: -'})</span>
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                             p.tipe_pengajuan === 'cuti_tahunan'
-                              ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200 border border-blue-300 dark:border-blue-700'
+                              ? 'bg-blue-100 text-blue-950 dark:bg-blue-900/40 dark:text-blue-200 border border-blue-400 dark:border-blue-700'
                               : p.tipe_pengajuan === 'cuti_sakit'
-                              ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
-                              : 'bg-purple-100 text-purple-900 dark:bg-purple-900/40 dark:text-purple-200 border border-purple-300 dark:border-purple-700'
+                              ? 'bg-amber-100 text-amber-950 dark:bg-amber-900/40 dark:text-amber-200 border border-amber-400 dark:border-amber-700'
+                              : 'bg-purple-100 text-purple-950 dark:bg-purple-900/40 dark:text-purple-200 border border-purple-400 dark:border-purple-700'
                           }`}
                         >
                           {p.tipe_pengajuan.replace('_', ' ').toUpperCase()}
@@ -885,26 +896,26 @@ export default function AdminDashboard() {
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                             p.status_approval === 'approved'
-                              ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
+                              ? 'bg-emerald-100 text-emerald-950 dark:bg-emerald-900/40 dark:text-emerald-200 border border-emerald-400 dark:border-emerald-700'
                               : p.status_approval === 'rejected'
-                              ? 'bg-rose-100 text-rose-900 dark:bg-rose-900/40 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
-                              : 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+                              ? 'bg-rose-100 text-rose-950 dark:bg-rose-900/40 dark:text-rose-200 border border-rose-400 dark:border-rose-700'
+                              : 'bg-amber-100 text-amber-950 dark:bg-amber-900/40 dark:text-amber-200 border border-amber-400 dark:border-amber-700'
                           }`}
                         >
                           {p.status_approval.toUpperCase()}
                         </span>
                       </div>
 
-                      <div className={`text-xs ${darkMode ? 'text-slate-300' : 'text-slate-800 font-medium'}`}>
+                      <div className={`text-xs ${darkMode ? 'text-slate-300' : 'text-slate-900 font-semibold'}`}>
                         Periode:{' '}
-                        <strong className={darkMode ? 'text-white' : 'text-slate-950 font-bold'}>
+                        <strong className={darkMode ? 'text-white' : 'text-slate-950 font-black'}>
                           {p.tanggal_mulai} s/d {p.tanggal_selesai}
                         </strong>{' '}
                         ({p.jumlah_hari_kerja} hari kerja di luar Sabtu-Minggu) | Sisa Kuota Cuti Pegawai:{' '}
                         <strong className="text-emerald-700 dark:text-emerald-300 font-bold">{p.sisa_cuti_tahunan} hari</strong>
                       </div>
 
-                      <div className={`text-xs italic ${darkMode ? 'text-slate-200' : 'text-slate-800 font-medium'}`}>
+                      <div className={`text-xs italic ${darkMode ? 'text-slate-200' : 'text-slate-900 font-semibold'}`}>
                         Alasan: "{p.alasan}"
                       </div>
 
@@ -991,7 +1002,7 @@ export default function AdminDashboard() {
                   <Users className="w-5 h-5 text-sky-500" />
                   <span>Daftar Pegawai & Kuota Cuti</span>
                 </h2>
-                <p className={`text-xs ${darkMode ? 'text-slate-300' : 'text-slate-700 font-medium'}`}>
+                <p className={`text-xs ${darkMode ? 'text-slate-200' : 'text-slate-800 font-bold'}`}>
                   Kelola data akun, reset password (default stupa123), dan sisa jatah cuti tahunan.
                 </p>
               </div>
@@ -1004,10 +1015,10 @@ export default function AdminDashboard() {
                     placeholder="Cari nama / NIP..."
                     value={searchPegawai}
                     onChange={(e) => setSearchPegawai(e.target.value)}
-                    className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                    className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-sky-500 ${
                       darkMode
                         ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400'
-                        : 'bg-white border border-sky-300 text-slate-900 placeholder-slate-500 shadow-sm'
+                        : 'bg-white border border-sky-300 text-slate-950 placeholder-slate-400 shadow-sm'
                     }`}
                   />
                 </div>
@@ -1049,10 +1060,10 @@ export default function AdminDashboard() {
             <div className="overflow-x-auto rounded-2xl border border-sky-200 dark:border-slate-800">
               <table className="w-full text-left text-xs">
                 <thead
-                  className={`uppercase font-black border-b ${
+                  className={`uppercase font-black border-b-2 ${
                     darkMode
-                      ? 'bg-slate-800 text-slate-200 border-slate-700'
-                      : 'bg-sky-100 text-slate-900 border-sky-200'
+                      ? 'bg-slate-800 text-slate-100 border-slate-700'
+                      : 'bg-sky-100 text-slate-950 border-sky-300'
                   }`}
                 >
                   <tr>
@@ -1075,16 +1086,16 @@ export default function AdminDashboard() {
                       className={`transition ${darkMode ? 'hover:bg-slate-800/40' : 'hover:bg-sky-50/70'}`}
                     >
                       <td className="py-3 px-4">
-                        <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                           {p.nama}
                         </div>
-                        <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">NIP: {p.nip || '-'}</div>
+                        <div className="text-[11px] font-bold text-slate-800 dark:text-slate-300">NIP: {p.nip || '-'}</div>
                       </td>
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-900 dark:text-white">{p.email}</div>
-                        <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">@{p.username || '-'}</div>
+                        <div className="font-bold text-slate-950 dark:text-white">{p.email}</div>
+                        <div className="text-[11px] font-bold text-sky-950 dark:text-sky-300">@{p.username || '-'}</div>
                       </td>
-                      <td className="py-3 px-4 font-semibold text-slate-900 dark:text-slate-200">{p.jabatan || 'Staff'}</td>
+                      <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100">{p.jabatan || 'Staff'}</td>
                       <td className="py-3 px-4 text-center">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1097,7 +1108,7 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className="font-bold text-sky-800 dark:text-sky-300">
+                        <span className="font-black text-sky-950 dark:text-sky-300">
                           {p.sisa_cuti_tahunan} Hari
                         </span>
                       </td>
@@ -1510,7 +1521,7 @@ export default function AdminDashboard() {
 
                 <div className="overflow-x-auto border border-sky-200 dark:border-slate-800 rounded-2xl">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-sky-100 dark:bg-slate-800 uppercase font-black text-slate-900 dark:text-slate-200 border-b border-sky-200 dark:border-slate-700">
+                    <thead className="bg-sky-100 dark:bg-slate-800 uppercase font-black text-slate-950 dark:text-slate-100 border-b-2 border-sky-300 dark:border-slate-700">
                       <tr>
                         <th className="py-2.5 px-3 text-center w-12">No</th>
                         <th className="py-2.5 px-3 text-left w-36">Tanggal</th>
@@ -1522,13 +1533,13 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-900 dark:text-slate-200">
                       {loadingHolidays ? (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-slate-700 dark:text-slate-300 font-semibold">
+                          <td colSpan={5} className="py-8 text-center text-slate-800 dark:text-slate-300 font-bold">
                             Memuat data hari libur...
                           </td>
                         </tr>
                       ) : holidaysList.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-slate-700 dark:text-slate-300 font-semibold">
+                          <td colSpan={5} className="py-8 text-center text-slate-800 dark:text-slate-300 font-bold">
                             Belum ada hari libur tersimpan untuk tahun {filterTahunLibur}. Klik &quot;Sinkronkan Kalender Libur Nasional&quot; atau input secara manual.
                           </td>
                         </tr>
@@ -1540,10 +1551,10 @@ export default function AdminDashboard() {
                               key={h.id || idx}
                               className="hover:bg-sky-50/60 dark:hover:bg-slate-850/40 transition"
                             >
-                              <td className="py-2.5 px-3 text-center font-bold text-slate-700 dark:text-slate-300">
+                              <td className="py-2.5 px-3 text-center font-bold text-slate-950 dark:text-slate-200">
                                 {idx + 1}
                               </td>
-                              <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                              <td className="py-2.5 px-3 font-bold text-slate-950 dark:text-white whitespace-nowrap">
                                 {dateObj.toLocaleDateString('id-ID', {
                                   weekday: 'short',
                                   day: 'numeric',
@@ -1551,15 +1562,15 @@ export default function AdminDashboard() {
                                   year: 'numeric',
                                 })}
                               </td>
-                              <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-slate-100">
+                              <td className="py-2.5 px-3 font-bold text-slate-950 dark:text-slate-100">
                                 {h.keterangan}
                               </td>
                               <td className="py-2.5 px-3 text-center">
                                 <span
-                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
                                     h.tipe === 'khusus'
-                                      ? 'bg-purple-100 text-purple-900 dark:bg-purple-900/60 dark:text-purple-200 border border-purple-300 dark:border-purple-700'
-                                      : 'bg-rose-100 text-rose-900 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700'
+                                      ? 'bg-purple-100 text-purple-950 dark:bg-purple-900/60 dark:text-purple-200 border border-purple-400 dark:border-purple-700'
+                                      : 'bg-rose-100 text-rose-950 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-400 dark:border-rose-700'
                                   }`}
                                 >
                                   {h.tipe === 'khusus' ? 'Khusus STUPA' : 'Nasional'}
@@ -2036,7 +2047,7 @@ export default function AdminDashboard() {
                     <col style={{ width: '13%' }} />
                     <col style={{ width: '16%' }} />
                   </colgroup>
-                  <thead className="bg-sky-100 dark:bg-slate-800 print:bg-slate-100 uppercase font-black text-slate-900 dark:text-slate-100 print:text-black border border-slate-300 dark:border-slate-700 print:border-black">
+                  <thead className="bg-sky-100 dark:bg-slate-800 print:bg-slate-100 uppercase font-black text-slate-950 dark:text-slate-100 print:text-black border-b-2 border-sky-300 dark:border-slate-700 print:border-black">
                     <tr>
                       <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Nama & NIP/NIK</th>
                       <th className="py-2.5 px-2 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Jabatan</th>
@@ -2060,47 +2071,47 @@ export default function AdminDashboard() {
                           className="hover:bg-sky-50/60 dark:hover:bg-slate-850/40 print:hover:bg-transparent"
                         >
                           <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black">
-                            <div className="font-bold text-slate-900 dark:text-white print:text-black">
+                            <div className="font-bold text-slate-950 dark:text-white print:text-black">
                               {p.nama}
                             </div>
-                            <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 print:text-black">
+                            <div className="text-[10px] font-bold text-slate-800 dark:text-slate-300 print:text-black">
                               NIP/NIK: {p.nip || '-'}
                             </div>
                           </td>
-                          <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black font-semibold text-slate-900 dark:text-slate-200 print:text-black">
+                          <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black font-bold text-slate-900 dark:text-slate-100 print:text-black">
                             {p.jabatan || 'Staff'}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-slate-900 dark:text-white print:text-black">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-black text-slate-950 dark:text-white print:text-black">
                             {p.total_hadir}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-emerald-800 dark:text-emerald-300 print:text-black font-bold">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-emerald-950 dark:text-emerald-300 print:text-black font-black">
                             {p.hadir_tepat_waktu}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-rose-800 dark:text-rose-300 print:text-black font-bold">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-rose-950 dark:text-rose-300 print:text-black font-black">
                             {p.total_terlambat}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-amber-800 dark:text-amber-300 print:text-black font-bold">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-amber-950 dark:text-amber-300 print:text-black font-black">
                             {p.total_mendahului}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-indigo-800 dark:text-purple-300 print:text-black font-bold">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black text-indigo-950 dark:text-purple-300 print:text-black font-black">
                             {p.total_dinas_luar}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-blue-800 dark:text-blue-300 print:text-black">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-black text-blue-950 dark:text-blue-300 print:text-black">
                             {(p.total_cuti || 0) + (p.total_sakit || 0)}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-rose-800 dark:text-rose-300 print:text-black">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-black text-rose-950 dark:text-rose-300 print:text-black">
                             {totalAlpha > 0 ? (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-900 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-950 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-400 dark:border-rose-700">
                                 {totalAlpha}x
                               </span>
                             ) : (
                               '0'
                             )}
                           </td>
-                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-slate-900 dark:text-slate-100 print:text-black">
+                          <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black font-bold text-slate-950 dark:text-slate-100 print:text-black">
                             {p.total_menit_pelanggaran || 0} m
                           </td>
-                          <td className="py-2 px-2 text-right border border-slate-200 dark:border-slate-800 print:border-black font-bold text-rose-800 dark:text-rose-300 print:text-black whitespace-nowrap">
+                          <td className="py-2 px-2 text-right border border-slate-200 dark:border-slate-800 print:border-black font-black text-rose-950 dark:text-rose-300 print:text-black whitespace-nowrap">
                             Rp {(p.total_potongan_gaji_rp || 0).toLocaleString('id-ID')}
                           </td>
                         </tr>
@@ -2136,7 +2147,7 @@ export default function AdminDashboard() {
                     <col style={{ width: '17%' }} />
                     <col style={{ width: '14%' }} />
                   </colgroup>
-                  <thead className="bg-sky-100 dark:bg-slate-800 print:bg-slate-100 uppercase font-black text-slate-900 dark:text-slate-100 print:text-black border border-slate-300 dark:border-slate-700 print:border-black">
+                  <thead className="bg-sky-100 dark:bg-slate-800 print:bg-slate-100 uppercase font-black text-slate-950 dark:text-slate-100 print:text-black border-b-2 border-sky-300 dark:border-slate-700 print:border-black">
                     <tr>
                       <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">No</th>
                       <th className="py-2.5 px-1 text-center align-middle border border-slate-300 dark:border-slate-700 print:border-black text-[10px] sm:text-[11px] whitespace-normal">Foto</th>
@@ -2152,7 +2163,7 @@ export default function AdminDashboard() {
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800 print:divide-black text-slate-900 dark:text-slate-100 print:text-black">
                     {rekapData?.logs?.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="py-6 text-center text-slate-700 dark:text-slate-300 font-semibold print:text-black">
+                        <td colSpan={9} className="py-6 text-center text-slate-800 dark:text-slate-300 font-bold print:text-black">
                           Tidak ada rekaman presensi pada periode bulan ini.
                         </td>
                       </tr>
@@ -2165,12 +2176,12 @@ export default function AdminDashboard() {
                             key={l.id}
                             className="hover:bg-sky-50/60 dark:hover:bg-slate-850/40 print:hover:bg-transparent"
                           >
-                            <td className="py-2 px-1 text-center font-bold text-slate-800 dark:text-slate-200 print:text-black border border-slate-200 dark:border-slate-800 print:border-black">
+                            <td className="py-2 px-1 text-center font-bold text-slate-950 dark:text-slate-200 print:text-black border border-slate-200 dark:border-slate-800 print:border-black">
                               {idx + 1}
                             </td>
                             <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black">
                               {l.is_alpha ? (
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-900 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700 print:border print:border-black">
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-100 text-rose-950 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-400 dark:border-rose-700 print:border print:border-black">
                                   ALPHA
                                 </span>
                               ) : l.url_foto_cloudinary ? (
@@ -2191,20 +2202,20 @@ export default function AdminDashboard() {
                               )}
                             </td>
                             <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black">
-                              <div className="font-bold text-slate-900 dark:text-white print:text-black">
+                              <div className="font-bold text-slate-950 dark:text-white print:text-black">
                                 {l.nama}
                               </div>
-                              <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 print:text-black">
+                              <div className="text-[10px] font-bold text-slate-800 dark:text-slate-300 print:text-black">
                                 NIP: {l.nip || '-'}
                               </div>
                             </td>
                             <td className="py-2 px-2 border border-slate-200 dark:border-slate-800 print:border-black">
-                              <div className="text-slate-900 dark:text-white print:text-black font-bold">
+                              <div className="text-slate-950 dark:text-white print:text-black font-bold">
                                 {new Date(l.waktu_absen).toLocaleDateString('id-ID')}
                               </div>
-                              <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 print:text-black">
+                              <div className="text-[10px] font-bold text-slate-800 dark:text-slate-300 print:text-black">
                                 {l.is_alpha ? (
-                                  <span className="text-rose-700 dark:text-rose-300 font-bold">Tanpa Presensi</span>
+                                  <span className="text-rose-950 dark:text-rose-300 font-black">Tanpa Presensi</span>
                                 ) : (
                                   `${new Date(l.waktu_absen).toLocaleTimeString('id-ID', {
                                     hour: '2-digit',
@@ -2213,25 +2224,25 @@ export default function AdminDashboard() {
                                 )}
                               </div>
                             </td>
-                            <td className="py-2 px-1 text-center uppercase font-black text-[11px] text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-800 print:border-black">
+                            <td className="py-2 px-1 text-center uppercase font-black text-[11px] text-slate-950 dark:text-white border border-slate-200 dark:border-slate-800 print:border-black">
                               {l.tipe_absen}
                             </td>
                             <td className="py-2 px-1 text-center border border-slate-200 dark:border-slate-800 print:border-black">
                               <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
                                   l.is_alpha
-                                    ? 'bg-rose-100 text-rose-900 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700 print:border print:border-black'
+                                    ? 'bg-rose-100 text-rose-950 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-400 dark:border-rose-700 print:border print:border-black'
                                     : l.status === 'tepat_waktu'
-                                    ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 print:border print:border-black'
+                                    ? 'bg-emerald-100 text-emerald-950 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-400 dark:border-emerald-700 print:border print:border-black'
                                     : l.status === 'terlambat'
-                                    ? 'bg-rose-100 text-rose-900 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-300 dark:border-rose-700 print:border print:border-black'
+                                    ? 'bg-rose-100 text-rose-950 dark:bg-rose-900/60 dark:text-rose-200 border border-rose-400 dark:border-rose-700 print:border print:border-black'
                                     : l.status === 'mendahului'
-                                    ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700 print:border print:border-black'
+                                    ? 'bg-amber-100 text-amber-950 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-400 dark:border-amber-700 print:border print:border-black'
                                     : l.status === 'cuti_tahunan' || l.status === 'cuti'
-                                    ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/60 dark:text-blue-200 border border-blue-300 dark:border-blue-700 print:border print:border-black'
+                                    ? 'bg-blue-100 text-blue-950 dark:bg-blue-900/60 dark:text-blue-200 border border-blue-400 dark:border-blue-700 print:border print:border-black'
                                     : l.status === 'cuti_sakit' || l.status === 'sakit'
-                                    ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700 print:border print:border-black'
-                                    : 'bg-purple-100 text-purple-900 dark:bg-purple-900/60 dark:text-purple-200 border border-purple-300 dark:border-purple-700 print:border print:border-black'
+                                    ? 'bg-amber-100 text-amber-950 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-400 dark:border-amber-700 print:border print:border-black'
+                                    : 'bg-purple-100 text-purple-950 dark:bg-purple-900/60 dark:text-purple-200 border border-purple-400 dark:border-purple-700 print:border print:border-black'
                                 }`}
                               >
                                 {l.is_alpha
@@ -2241,10 +2252,10 @@ export default function AdminDashboard() {
                                   : l.status?.replace('_', ' ').toUpperCase()}
                               </span>
                             </td>
-                            <td className="py-2 px-1 text-center font-bold text-slate-900 dark:text-slate-200 border border-slate-200 dark:border-slate-800 print:border-black">
+                            <td className="py-2 px-1 text-center font-bold text-slate-950 dark:text-slate-200 border border-slate-200 dark:border-slate-800 print:border-black">
                               {l.jarak_dari_kantor ? `${l.jarak_dari_kantor}m` : '-'}
                             </td>
-                            <td className="py-2 px-2 text-slate-900 dark:text-slate-100 print:text-black font-medium text-[11px] border border-slate-200 dark:border-slate-800 print:border-black">
+                            <td className="py-2 px-2 text-slate-950 dark:text-slate-100 print:text-black font-bold text-[11px] border border-slate-200 dark:border-slate-800 print:border-black">
                               {l.catatan || (
                                 <>
                                   {l.waktu_terlambat > 0 && `Telat ${l.waktu_terlambat}m. `}
@@ -2254,14 +2265,14 @@ export default function AdminDashboard() {
                             </td>
                             <td className="py-2 px-2 text-right border border-slate-200 dark:border-slate-800 print:border-black">
                               {totalMenit > 0 ? (
-                                <span className="text-rose-800 dark:text-rose-300 font-bold block">
+                                <span className="text-rose-950 dark:text-rose-300 font-black block">
                                   -Rp {denda.toLocaleString('id-ID')}
-                                  <span className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 print:text-black">
+                                  <span className="block text-[10px] font-bold text-slate-800 dark:text-slate-300 print:text-black">
                                     ({totalMenit} m)
                                   </span>
                                 </span>
                               ) : (
-                                <span className="text-emerald-800 dark:text-emerald-300 font-bold text-[11px]">
+                                <span className="text-emerald-950 dark:text-emerald-300 font-bold text-[11px]">
                                   Rp 0
                                 </span>
                               )}

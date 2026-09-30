@@ -91,10 +91,14 @@ export default function PegawaiDashboard() {
   // Load Theme Preference
   useEffect(() => {
     const savedTheme = localStorage.getItem('sipeg_theme');
-    if (savedTheme === 'dark') {
-      setDarkMode(true);
-    } else {
-      setDarkMode(false);
+    const isDark = savedTheme === 'dark';
+    setDarkMode(isDark);
+    if (typeof document !== 'undefined') {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, []);
 
@@ -102,6 +106,13 @@ export default function PegawaiDashboard() {
     const newTheme = !darkMode;
     setDarkMode(newTheme);
     localStorage.setItem('sipeg_theme', newTheme ? 'dark' : 'light');
+    if (typeof document !== 'undefined') {
+      if (newTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
   };
 
   useEffect(() => {
@@ -629,11 +640,11 @@ export default function PegawaiDashboard() {
               )}
             </div>
             <div>
-              <div className="text-xs text-slate-700 dark:text-slate-300 font-semibold">NIP: {user?.nip || '-'}</div>
-              <div className={`text-base sm:text-lg font-extrabold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              <div className="text-xs text-slate-800 dark:text-slate-300 font-bold">NIP: {user?.nip || '-'}</div>
+              <div className={`text-base sm:text-lg font-black ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                 {user?.nama}
               </div>
-              <div className="text-xs text-slate-700 dark:text-slate-300 font-medium">{user?.email}</div>
+              <div className="text-xs text-slate-800 dark:text-slate-300 font-bold">{user?.email}</div>
             </div>
           </div>
 
@@ -645,9 +656,9 @@ export default function PegawaiDashboard() {
                   : 'bg-sky-50/80 border-sky-200'
               }`}
             >
-              <div className="text-xs text-slate-800 dark:text-slate-200 font-bold">Sisa Cuti Tahunan</div>
-              <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400">
-                {user?.sisa_cuti_tahunan ?? 12} <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Hari</span>
+              <div className="text-xs text-slate-900 dark:text-slate-200 font-black">Sisa Cuti Tahunan</div>
+              <div className="text-xl font-black text-emerald-700 dark:text-emerald-400">
+                {user?.sisa_cuti_tahunan ?? 12} <span className="text-xs font-bold text-slate-800 dark:text-slate-300">Hari</span>
               </div>
             </div>
 
@@ -658,8 +669,8 @@ export default function PegawaiDashboard() {
                   : 'bg-sky-50/80 border-sky-200'
               }`}
             >
-              <div className="text-xs text-slate-800 dark:text-slate-200 font-bold">Jam Server</div>
-              <div className="text-xl font-extrabold text-sky-700 dark:text-sky-300 font-mono">
+              <div className="text-xs text-slate-900 dark:text-slate-200 font-black">Jam Server</div>
+              <div className="text-xl font-black text-sky-950 dark:text-sky-300 font-mono">
                 {currentTime || '--:--:--'}
               </div>
             </div>
@@ -809,14 +820,14 @@ export default function PegawaiDashboard() {
                 <div className="flex items-center gap-2.5">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <div>
-                    <div className="font-bold text-slate-900 dark:text-white">
+                    <div className="font-black text-slate-950 dark:text-white">
                       {isWithinRadius
                         ? `Di Dalam Radius Kantor (${distanceMeter}m)`
                         : distanceMeter !== null
                         ? `Di Luar Radius Kantor (${distanceMeter}m)`
                         : 'Mendeteksi Lokasi GPS...'}
                     </div>
-                    <div className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                    <div className="text-[11px] text-slate-800 dark:text-slate-300 font-bold">
                       Batas radius: {kantor?.radius_meter || 100}m dari kantor pusat STUPA
                     </div>
                   </div>
@@ -1012,17 +1023,17 @@ export default function PegawaiDashboard() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    <span className="text-xs font-black text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                       Presensi Masuk
                     </span>
                     <span
                       className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
                         todayAbsen?.masuk
                           ? todayAbsen.masuk.status === 'tepat_waktu'
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
                             : todayAbsen.masuk.status === 'terlambat'
-                            ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
-                            : 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300'
+                            ? 'bg-rose-100 text-rose-900 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-700'
+                            : 'bg-sky-100 text-sky-900 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-700'
                           : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
                       }`}
                     >
@@ -1042,7 +1053,7 @@ export default function PegawaiDashboard() {
                         />
                       )}
                       <div>
-                        <div className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        <div className={`text-sm font-black ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                           Pukul{' '}
                           {new Date(todayAbsen.masuk.waktu_absen).toLocaleTimeString('id-ID', {
                             hour: '2-digit',
@@ -1050,14 +1061,14 @@ export default function PegawaiDashboard() {
                           })}{' '}
                           WITA
                         </div>
-                        <div className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                        <div className="text-xs text-slate-800 dark:text-slate-300 font-semibold">
                           {todayAbsen.masuk.waktu_terlambat > 0 ? (
-                            <span className="text-rose-600 dark:text-rose-400 font-bold">
+                            <span className="text-rose-700 dark:text-rose-400 font-bold">
                               Terlambat {todayAbsen.masuk.waktu_terlambat} menit (-Rp{' '}
                               {(todayAbsen.masuk.waktu_terlambat * 500).toLocaleString('id-ID')})
                             </span>
                           ) : todayAbsen.masuk.status === 'cuti_tahunan' || todayAbsen.masuk.status === 'cuti_sakit' || todayAbsen.masuk.status === 'dinas_luar' ? (
-                            <span className="text-sky-700 dark:text-sky-300 font-bold">
+                            <span className="text-sky-800 dark:text-sky-300 font-bold">
                               {todayAbsen.masuk.catatan || 'Sistem Otomatis (Cuti/Dinas)'}
                             </span>
                           ) : (
@@ -1067,7 +1078,7 @@ export default function PegawaiDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Ambil selfie dan klik Absen Masuk.</p>
+                    <p className="text-xs text-slate-800 dark:text-slate-300 font-bold">Ambil selfie dan klik Absen Masuk.</p>
                   )}
                 </div>
 
@@ -1077,17 +1088,17 @@ export default function PegawaiDashboard() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    <span className="text-xs font-black text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                       Presensi Pulang
                     </span>
                     <span
                       className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
                         todayAbsen?.pulang
                           ? todayAbsen.pulang.status === 'tepat_waktu'
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
                             : todayAbsen.pulang.status === 'mendahului'
-                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                            : 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300'
+                            ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700'
+                            : 'bg-sky-100 text-sky-900 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-700'
                           : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
                       }`}
                     >
@@ -1107,7 +1118,7 @@ export default function PegawaiDashboard() {
                         />
                       )}
                       <div>
-                        <div className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        <div className={`text-sm font-black ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                           Pukul{' '}
                           {new Date(todayAbsen.pulang.waktu_absen).toLocaleTimeString('id-ID', {
                             hour: '2-digit',
@@ -1115,14 +1126,14 @@ export default function PegawaiDashboard() {
                           })}{' '}
                           WITA
                         </div>
-                        <div className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                        <div className="text-xs text-slate-800 dark:text-slate-300 font-semibold">
                           {todayAbsen.pulang.waktu_mendahului > 0 ? (
-                            <span className="text-amber-600 dark:text-amber-400 font-bold">
+                            <span className="text-amber-700 dark:text-amber-400 font-bold">
                               Mendahului {todayAbsen.pulang.waktu_mendahului} menit (-Rp{' '}
                               {(todayAbsen.pulang.waktu_mendahului * 500).toLocaleString('id-ID')})
                             </span>
                           ) : todayAbsen.pulang.status === 'cuti_tahunan' || todayAbsen.pulang.status === 'cuti_sakit' || todayAbsen.pulang.status === 'dinas_luar' ? (
-                            <span className="text-sky-700 dark:text-sky-300 font-bold">
+                            <span className="text-sky-800 dark:text-sky-300 font-bold">
                               {todayAbsen.pulang.catatan || 'Sistem Otomatis (Cuti/Dinas)'}
                             </span>
                           ) : (
@@ -1132,7 +1143,7 @@ export default function PegawaiDashboard() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Tersedia pada jadwal jam pulang.</p>
+                    <p className="text-xs text-slate-800 dark:text-slate-300 font-bold">Tersedia pada jadwal jam pulang.</p>
                   )}
                 </div>
               </div>
@@ -1143,11 +1154,11 @@ export default function PegawaiDashboard() {
                   darkMode ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-sky-200 text-slate-800'
                 }`}
               >
-                <div className={`font-bold text-sm flex items-center gap-1.5 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <div className={`font-black text-sm flex items-center gap-1.5 ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                   <Shield className="w-4 h-4 text-sky-500" />
                   <span>Jadwal & Ketentuan Presensi STUPA:</span>
                 </div>
-                <ul className="list-disc list-inside space-y-1 pl-1 font-medium text-slate-700 dark:text-slate-200">
+                <ul className="list-disc list-inside space-y-1.5 pl-1 font-bold text-slate-900 dark:text-slate-200 text-xs">
                   <li>Mulai Absen Masuk: {kantor?.jam_masuk_mulai?.substring(0, 5) || '06:30'} WITA</li>
                   <li>Batas Akhir Masuk: {kantor?.jam_masuk_akhir?.substring(0, 5) || '07:30'} WITA (Lewat = Terlambat)</li>
                   <li>Pulang Senin-Kamis: Mulai {kantor?.jam_pulang_senin_kamis_mulai?.substring(0, 5) || '15:30'} WITA</li>
@@ -1211,7 +1222,7 @@ export default function PegawaiDashboard() {
                     fetchHistoryWithFilters(filterBulan, y);
                   }}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold focus:outline-none ${
-                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-white border border-sky-300 text-slate-900 shadow-sm'
+                    darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-white border-2 border-sky-300 text-slate-950 shadow-sm'
                   }`}
                 >
                   {tahunOptions.map((t) => (
@@ -1226,34 +1237,34 @@ export default function PegawaiDashboard() {
             {/* Denda Summary Badge Bulan Terpilih */}
             <div
               className={`mb-4 p-3.5 rounded-2xl border flex items-center justify-between text-xs transition ${
-                darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/80 border-sky-200'
+                darkMode ? 'bg-slate-850 border-slate-800' : 'bg-sky-50/80 border-sky-300'
               }`}
             >
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 text-amber-500" />
-                <span className={darkMode ? 'text-slate-200 font-semibold' : 'text-slate-900 font-bold'}>
+                <span className={darkMode ? 'text-slate-200 font-semibold' : 'text-slate-950 font-black'}>
                   Total Potongan Keterlambatan Bulan Ini:
                 </span>
               </div>
-              <div className="font-extrabold text-rose-700 dark:text-rose-400">
+              <div className="font-black text-rose-700 dark:text-rose-400 text-sm">
                 Rp {totalDendaBulanIni.toLocaleString('id-ID')}
               </div>
             </div>
 
             {loadingHistory ? (
-              <div className="py-12 text-center text-slate-700 dark:text-slate-300 font-medium text-xs">Memuat data riwayat presensi...</div>
+              <div className="py-12 text-center text-slate-800 dark:text-slate-300 font-bold text-xs">Memuat data riwayat presensi...</div>
             ) : history.length === 0 ? (
-              <div className="py-12 text-center text-slate-700 dark:text-slate-300 font-medium text-xs">
+              <div className="py-12 text-center text-slate-800 dark:text-slate-300 font-bold text-xs">
                 Tidak ada rekaman presensi pada bulan ini.
               </div>
             ) : (
               <div className="overflow-x-auto rounded-2xl border border-sky-200 dark:border-slate-800">
                 <table className="w-full text-left text-xs">
                   <thead
-                    className={`uppercase font-bold border-b ${
+                    className={`uppercase font-black border-b-2 ${
                       darkMode
                         ? 'bg-slate-800 text-slate-100 border-slate-700'
-                        : 'bg-sky-100 text-sky-950 border-sky-300'
+                        : 'bg-sky-100 text-slate-950 border-sky-300'
                     }`}
                   >
                     <tr>
@@ -1292,7 +1303,7 @@ export default function PegawaiDashboard() {
                             )}
                           </td>
                           <td className="py-3 px-4">
-                            <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                            <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                               {new Date(h.waktu_absen).toLocaleDateString('id-ID', {
                                 weekday: 'short',
                                 day: 'numeric',
@@ -1300,11 +1311,11 @@ export default function PegawaiDashboard() {
                                 year: 'numeric',
                               })}
                             </div>
-                            <div className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                            <div className="text-[11px] text-slate-800 dark:text-slate-300 font-bold">
                               {new Date(h.waktu_absen).toLocaleTimeString('id-ID')} WITA
                             </div>
                           </td>
-                          <td className="py-3 px-4 font-extrabold uppercase text-slate-900 dark:text-white">{h.tipe_absen}</td>
+                          <td className="py-3 px-4 font-black uppercase text-slate-950 dark:text-white">{h.tipe_absen}</td>
                           <td className="py-3 px-4">
                             <span
                               className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
@@ -1324,15 +1335,15 @@ export default function PegawaiDashboard() {
                               {h.status?.replace('_', ' ').toUpperCase()}
                             </span>
                           </td>
-                          <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">{h.jarak_dari_kantor ? `${h.jarak_dari_kantor} m` : '-'}</td>
+                          <td className="py-3 px-4 font-bold text-slate-950 dark:text-slate-200">{h.jarak_dari_kantor ? `${h.jarak_dari_kantor} m` : '-'}</td>
                           <td className="py-3 px-4 text-right font-medium">
                             {totalMenit > 0 ? (
-                              <span className="text-rose-700 dark:text-rose-400 font-extrabold">
+                              <span className="text-rose-950 dark:text-rose-300 font-black">
                                 -Rp {denda.toLocaleString('id-ID')}{' '}
-                                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">({totalMenit}m)</span>
+                                <span className="text-[10px] text-slate-800 dark:text-slate-300 font-bold">({totalMenit}m)</span>
                               </span>
                             ) : (
-                              <span className="text-emerald-700 dark:text-emerald-400 font-bold">Rp 0</span>
+                              <span className="text-emerald-950 dark:text-emerald-300 font-bold">Rp 0</span>
                             )}
                           </td>
                         </tr>
@@ -1581,23 +1592,23 @@ export default function PegawaiDashboard() {
             }`}
           >
             <h2
-              className={`text-base font-bold mb-2 flex items-center gap-2 ${
-                darkMode ? 'text-white' : 'text-slate-900'
+              className={`text-base font-black mb-2 flex items-center gap-2 ${
+                darkMode ? 'text-white' : 'text-slate-950'
               }`}
             >
               <User className="w-5 h-5 text-sky-500" />
               <span>Pengaturan Profil Pegawai & Kata Sandi</span>
             </h2>
-            <p className={`text-xs mb-6 font-medium ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+            <p className={`text-xs mb-6 font-bold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
               Perbarui biodata kontak, foto profil, atau ganti kata sandi login akun Anda secara mandiri.
             </p>
 
             {profileMsg && (
               <div
-                className={`mb-5 p-3.5 rounded-xl text-xs flex items-center gap-2.5 font-medium ${
+                className={`mb-5 p-3.5 rounded-xl text-xs flex items-center gap-2.5 font-bold ${
                   profileMsg.type === 'success'
-                    ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-800 dark:text-emerald-200'
-                    : 'bg-rose-500/15 border border-rose-500/40 text-rose-800 dark:text-rose-200'
+                    ? 'bg-emerald-100 border border-emerald-400 text-emerald-950 dark:bg-emerald-950/60 dark:border-emerald-700 dark:text-emerald-200'
+                    : 'bg-rose-100 border border-rose-400 text-rose-950 dark:bg-rose-950/60 dark:border-rose-700 dark:text-rose-200'
                 }`}
               >
                 {profileMsg.type === 'success' ? (
@@ -1613,7 +1624,7 @@ export default function PegawaiDashboard() {
               {/* Photo Upload Section */}
               <div
                 className={`flex flex-col sm:flex-row items-center gap-4 pb-5 border-b ${
-                  darkMode ? 'border-slate-800' : 'border-sky-100'
+                  darkMode ? 'border-slate-800' : 'border-sky-200'
                 }`}
               >
                 <div className="relative">
@@ -1631,10 +1642,10 @@ export default function PegawaiDashboard() {
                 </div>
 
                 <div className="space-y-1.5 text-center sm:text-left">
-                  <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  <div className={`font-black text-sm ${darkMode ? 'text-white' : 'text-slate-950'}`}>
                     Foto Profil Pegawai
                   </div>
-                  <p className="text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                  <p className="text-[11px] text-slate-800 dark:text-slate-300 font-bold">
                     Format file JPG, PNG maks 3MB. Disimpan aman di Cloudinary.
                   </p>
                   <div>
@@ -1647,10 +1658,10 @@ export default function PegawaiDashboard() {
                     />
                     <label
                       htmlFor="profile-pic"
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-xl font-bold cursor-pointer transition ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-xl font-black cursor-pointer transition ${
                         darkMode
                           ? 'bg-slate-800 border-slate-700 text-sky-300 hover:bg-slate-700'
-                          : 'bg-sky-50 border-sky-300 text-sky-800 hover:bg-sky-100 shadow-sm'
+                          : 'bg-sky-100 border-sky-300 text-sky-950 hover:bg-sky-200 shadow-sm'
                       }`}
                     >
                       <Camera className="w-3.5 h-3.5" />
@@ -1663,7 +1674,7 @@ export default function PegawaiDashboard() {
               {/* Biodata Fields */}
               <div className="space-y-3.5">
                 <div>
-                  <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
+                  <label className="block font-black mb-1.5 text-slate-950 dark:text-slate-100 text-xs">
                     Nama Lengkap
                   </label>
                   <input
@@ -1671,44 +1682,44 @@ export default function PegawaiDashboard() {
                     required
                     value={profileForm.nama}
                     onChange={(e) => setProfileForm({ ...profileForm, nama: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                      darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-sky-50/70 border border-sky-300 text-slate-900'
+                    className={`w-full px-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                      darkMode ? 'bg-slate-800 border border-slate-700 text-white' : 'bg-white border-2 border-sky-300 text-slate-950 shadow-sm'
                     }`}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
+                    <label className="block font-black mb-1.5 text-slate-950 dark:text-slate-100 text-xs">
                       Nomor HP / WhatsApp
                     </label>
                     <div className="relative">
-                      <Phone className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500 dark:text-slate-400 pointer-events-none" />
+                      <Phone className="w-4 h-4 absolute left-3 top-3 text-sky-700 dark:text-sky-400 pointer-events-none" />
                       <input
                         type="text"
                         value={profileForm.no_hp}
                         onChange={(e) => setProfileForm({ ...profileForm, no_hp: e.target.value })}
                         placeholder="081234567890"
-                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
+                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-white border-2 border-sky-300 text-slate-950 placeholder-slate-400 shadow-sm'
                         }`}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
+                    <label className="block font-black mb-1.5 text-slate-950 dark:text-slate-100 text-xs">
                       Alamat Tinggal
                     </label>
                     <div className="relative">
-                      <Home className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500 dark:text-slate-400 pointer-events-none" />
+                      <Home className="w-4 h-4 absolute left-3 top-3 text-sky-700 dark:text-sky-400 pointer-events-none" />
                       <input
                         type="text"
                         value={profileForm.alamat}
                         onChange={(e) => setProfileForm({ ...profileForm, alamat: e.target.value })}
                         placeholder="Denpasar, Bali"
-                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
+                        className={`w-full pl-9 pr-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-white border-2 border-sky-300 text-slate-950 placeholder-slate-400 shadow-sm'
                         }`}
                       />
                     </div>
@@ -1719,16 +1730,16 @@ export default function PegawaiDashboard() {
               {/* Password Change Box */}
               <div
                 className={`pt-5 border-t space-y-3.5 ${
-                  darkMode ? 'border-slate-800' : 'border-sky-100'
+                  darkMode ? 'border-slate-800' : 'border-sky-200'
                 }`}
               >
-                <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-extrabold text-xs">
-                  <Lock className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-sky-950 dark:text-sky-300 font-black text-xs">
+                  <Lock className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                   <span>Ubah Kata Sandi (Kosongkan jika tidak ingin mengubah)</span>
                 </div>
 
                 <div>
-                  <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
+                  <label className="block font-black mb-1.5 text-slate-950 dark:text-slate-100 text-xs">
                     Kata Sandi Saat Ini
                   </label>
                   <div className="relative">
@@ -1737,14 +1748,14 @@ export default function PegawaiDashboard() {
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       placeholder="Masukkan kata sandi lama Anda"
-                      className={`w-full px-3.5 pr-10 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                        darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
+                      className={`w-full px-3.5 pr-10 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-white border-2 border-sky-300 text-slate-950 placeholder-slate-400 shadow-sm'
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white cursor-pointer"
+                      className="absolute right-3 top-2.5 text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white cursor-pointer"
                     >
                       {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -1753,7 +1764,7 @@ export default function PegawaiDashboard() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
+                    <label className="block font-black mb-1.5 text-slate-950 dark:text-slate-100 text-xs">
                       Kata Sandi Baru
                     </label>
                     <div className="relative">
@@ -1762,14 +1773,14 @@ export default function PegawaiDashboard() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Minimal 6 karakter"
-                        className={`w-full px-3.5 pr-10 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
+                        className={`w-full px-3.5 pr-10 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                          darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-white border-2 border-sky-300 text-slate-950 placeholder-slate-400 shadow-sm'
                         }`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white cursor-pointer"
+                        className="absolute right-3 top-2.5 text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white cursor-pointer"
                       >
                         {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -1777,7 +1788,7 @@ export default function PegawaiDashboard() {
                   </div>
 
                   <div>
-                    <label className="block font-bold mb-1 text-slate-900 dark:text-slate-100">
+                    <label className="block font-black mb-1.5 text-slate-950 dark:text-slate-100 text-xs">
                       Konfirmasi Sandi Baru
                     </label>
                     <input
@@ -1785,8 +1796,8 @@ export default function PegawaiDashboard() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Ketik ulang kata sandi baru"
-                      className={`w-full px-3.5 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 ${
-                        darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-sky-50/70 border border-sky-300 text-slate-900 placeholder-slate-500'
+                      className={`w-full px-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                        darkMode ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400' : 'bg-white border-2 border-sky-300 text-slate-950 placeholder-slate-400 shadow-sm'
                       }`}
                     />
                   </div>
