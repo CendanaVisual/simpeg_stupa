@@ -970,7 +970,7 @@ export default function PegawaiDashboard() {
                             ? 'Hari Libur (Nonaktif)'
                             : todayAbsen?.masuk
                             ? 'Sudah Absen Masuk'
-                            : 'Kirim Absen Masuk'}
+                            : 'Absen Masuk'}
                         </span>
                       </button>
 
@@ -992,7 +992,7 @@ export default function PegawaiDashboard() {
                             ? 'Hari Libur (Nonaktif)'
                             : todayAbsen?.pulang
                             ? 'Sudah Absen Pulang'
-                            : 'Kirim Absen Pulang'}
+                            : 'Absen Pulang'}
                         </span>
                       </button>
                     </>
