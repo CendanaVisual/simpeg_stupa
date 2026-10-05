@@ -30,6 +30,11 @@ export async function GET(req: NextRequest) {
         p.jumlah_hari_kerja,
         p.alasan,
         p.url_dokumen_pendukung_cloudinary,
+        p.tipe_absen_req,
+        p.waktu_presensi_req,
+        p.status_presensi_req,
+        p.jarak_meter_req,
+        p.url_foto_selfie,
         p.status_approval,
         p.approved_by,
         p.catatan_admin,
@@ -61,7 +66,33 @@ export async function GET(req: NextRequest) {
 
     const pengajuanList = await query(sql, params);
 
-    return NextResponse.json({ pengajuan: pengajuanList });
+    // Hitung kuota lupa absen bulan ini untuk pegawai (Maks 3 kali per bulan)
+    let kuotaLupaAbsen = null;
+    if (session.role === 'pegawai') {
+      const now = new Date();
+      const curM = now.getMonth() + 1;
+      const curY = now.getFullYear();
+      const countRes = await query(
+        `SELECT COUNT(*) AS total_lupa
+         FROM pengajuan
+         WHERE pegawai_id = $1 
+           AND tipe_pengajuan = 'lupa_absen' 
+           AND status_approval != 'rejected'
+           AND EXTRACT(MONTH FROM tanggal_mulai) = $2
+           AND EXTRACT(YEAR FROM tanggal_mulai) = $3`,
+        [session.id, curM, curY]
+      );
+      const terpakai = parseInt(countRes[0]?.total_lupa || 0);
+      kuotaLupaAbsen = {
+        bulan: curM,
+        tahun: curY,
+        terpakai,
+        sisa: Math.max(0, 3 - terpakai),
+        maksimal: 3,
+      };
+    }
+
+    return NextResponse.json({ pengajuan: pengajuanList, kuota_lupa_absen: kuotaLupaAbsen });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -76,12 +107,104 @@ export async function POST(req: NextRequest) {
     }
 
     const {
-      tipe_pengajuan, // 'cuti_tahunan', 'cuti_sakit', 'dinas_luar'
+      tipe_pengajuan, // 'cuti_tahunan', 'cuti_sakit', 'dinas_luar', 'lupa_absen'
       tanggal_mulai,
       tanggal_selesai,
       alasan,
       dokumen_base64,
+      tipe_absen_req,
+      waktu_presensi_req,
+      foto_selfie_base64,
     } = await req.json();
+
+    // Khusus Penanganan Pengajuan Lupa Absen
+    if (tipe_pengajuan === 'lupa_absen') {
+      const tglPengajuan = tanggal_mulai || tanggal_selesai;
+      if (!tglPengajuan) {
+        return NextResponse.json({ error: 'Tanggal presensi wajib dipilih' }, { status: 400 });
+      }
+
+      const selfieData = foto_selfie_base64 || dokumen_base64;
+      if (!selfieData) {
+        return NextResponse.json(
+          { error: 'Foto selfie wajib diambil untuk verifikasi pengajuan lupa absen' },
+          { status: 400 }
+        );
+      }
+
+      // Validasi kuota maksimal 3 kali per bulan (sisa kuota bulan sebelumnya otomatis hangus)
+      const targetDate = new Date(tglPengajuan);
+      const targetMonth = targetDate.getMonth() + 1;
+      const targetYear = targetDate.getFullYear();
+
+      const countRes = await query(
+        `SELECT COUNT(*) AS total_lupa
+         FROM pengajuan
+         WHERE pegawai_id = $1
+           AND tipe_pengajuan = 'lupa_absen'
+           AND status_approval != 'rejected'
+           AND EXTRACT(MONTH FROM tanggal_mulai) = $2
+           AND EXTRACT(YEAR FROM tanggal_mulai) = $3`,
+        [session.id, targetMonth, targetYear]
+      );
+
+      const totalLupa = parseInt(countRes[0]?.total_lupa || 0);
+      if (totalLupa >= 3) {
+        return NextResponse.json(
+          {
+            error: `Batas pengajuan lupa absen untuk bulan ${targetMonth}/${targetYear} telah mencapai batas maksimal (3 kali). Sisa kuota bulan sebelumnya otomatis hangus.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Upload Foto Selfie ke Cloudinary
+      const urlFotoSelfie = await uploadToCloudinary(
+        selfieData,
+        `sipeg_stupa/lupa_absen/${session.nip || session.id}`
+      );
+
+      const tipeAbsen = tipe_absen_req === 'pulang' ? 'pulang' : 'masuk';
+      let waktuReq = waktu_presensi_req;
+      if (!waktuReq) {
+        waktuReq = tipeAbsen === 'pulang' ? '16:00:00' : '07:30:00';
+      } else if (waktuReq.length === 5) {
+        waktuReq += ':00';
+      }
+
+      const insertRes = await query(
+        `INSERT INTO pengajuan (
+          pegawai_id,
+          tipe_pengajuan,
+          tanggal_mulai,
+          tanggal_selesai,
+          jumlah_hari_kerja,
+          alasan,
+          tipe_absen_req,
+          waktu_presensi_req,
+          status_presensi_req,
+          jarak_meter_req,
+          url_foto_selfie,
+          url_dokumen_pendukung_cloudinary,
+          status_approval
+        ) VALUES ($1, 'lupa_absen', $2, $2, 1, $3, $4, $5, 'tepat_waktu', 100, $6, $6, 'pending')
+        RETURNING *`,
+        [
+          session.id,
+          tglPengajuan,
+          alasan || 'Pengajuan Lupa Absen',
+          tipeAbsen,
+          waktuReq,
+          urlFotoSelfie,
+        ]
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: 'Pengajuan Lupa Absen berhasil dikirim dan menunggu verifikasi Admin.',
+        pengajuan: insertRes[0],
+      });
+    }
 
     if (!tipe_pengajuan || !tanggal_mulai || !tanggal_selesai || !alasan) {
       return NextResponse.json(

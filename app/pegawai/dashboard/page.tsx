@@ -23,7 +23,9 @@ import {
   EyeOff,
   Coins,
   Sun,
-  Moon
+  Moon,
+  Sparkles,
+  X,
 } from 'lucide-react';
 
 export default function PegawaiDashboard() {
@@ -57,6 +59,26 @@ export default function PegawaiDashboard() {
   const [submittingAbsen, setSubmittingAbsen] = useState(false);
   const [absenSuccessMsg, setAbsenSuccessMsg] = useState('');
   const [absenErrorMsg, setAbsenErrorMsg] = useState('');
+
+  // State Fitur Ajukan Lupa Absen (Mewah Emas & Kuota Maks 3x/Bulan)
+  const [showLupaAbsenModal, setShowLupaAbsenModal] = useState(false);
+  const [lupaTanggal, setLupaTanggal] = useState<string>(() => {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  });
+  const [lupaTipeAbsen, setLupaTipeAbsen] = useState<'masuk' | 'pulang'>('masuk');
+  const [lupaWaktu, setLupaWaktu] = useState<string>('07:30');
+  const [lupaFotoSelfie, setLupaFotoSelfie] = useState<string | null>(null);
+  const [lupaAlasan, setLupaAlasan] = useState<string>('');
+  const [lupaCameraActive, setLupaCameraActive] = useState(false);
+  const [lupaSubmitting, setLupaSubmitting] = useState(false);
+  const [lupaMsg, setLupaMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const lupaVideoRef = useRef<HTMLVideoElement | null>(null);
+  const lupaCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Pengajuan State
   const [tipePengajuan, setTipePengajuan] = useState<'cuti_tahunan' | 'cuti_sakit' | 'dinas_luar'>('cuti_tahunan');
@@ -408,6 +430,162 @@ export default function PegawaiDashboard() {
       setPengajuanMsg({ type: 'error', text: err.message });
     } finally {
       setSubmittingPengajuan(false);
+    }
+  };
+
+  // Handlers Fitur Ajukan Lupa Absen
+  const handleLupaTipeChange = (newTipe: 'masuk' | 'pulang') => {
+    setLupaTipeAbsen(newTipe);
+    if (newTipe === 'masuk') {
+      setLupaWaktu('07:30');
+    } else {
+      setLupaWaktu('16:00');
+    }
+  };
+
+  const startLupaCamera = async () => {
+    setLupaCameraActive(true);
+    setLupaFotoSelfie(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false,
+      });
+      if (lupaVideoRef.current) {
+        lupaVideoRef.current.srcObject = stream;
+      }
+    } catch (err: any) {
+      alert(`Kamera tidak dapat diakses: ${err.message}. Pastikan izin kamera aktif pada browser.`);
+      setLupaCameraActive(false);
+    }
+  };
+
+  const stopLupaCamera = () => {
+    if (lupaVideoRef.current && lupaVideoRef.current.srcObject) {
+      const stream = lupaVideoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      lupaVideoRef.current.srcObject = null;
+    }
+    setLupaCameraActive(false);
+  };
+
+  const captureLupaPhoto = () => {
+    if (!lupaVideoRef.current || !lupaCanvasRef.current) return;
+    const video = lupaVideoRef.current;
+    const canvas = lupaCanvasRef.current;
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      setLupaFotoSelfie(dataUrl);
+      stopLupaCamera();
+    }
+  };
+
+  const handleLupaFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Ukuran file foto maksimal 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLupaFotoSelfie(reader.result as string);
+        stopLupaCamera();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const openLupaAbsenModal = () => {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    setLupaTanggal(`${y}-${m}-${d}`);
+    setLupaTipeAbsen('masuk');
+    setLupaWaktu('07:30');
+    setLupaFotoSelfie(null);
+    setLupaAlasan('');
+    setLupaMsg(null);
+    setShowLupaAbsenModal(true);
+  };
+
+  const closeLupaAbsenModal = () => {
+    stopLupaCamera();
+    setShowLupaAbsenModal(false);
+  };
+
+  // Hitung kuota lupa absen pada bulan tanggal terpilih (Maks 3 kali per bulan)
+  const selectedLupaDate = lupaTanggal ? new Date(lupaTanggal) : new Date();
+  const selectedLupaMonth = selectedLupaDate.getMonth() + 1;
+  const selectedLupaYear = selectedLupaDate.getFullYear();
+
+  const usedLupaThisMonth = pengajuanList.filter((p: any) => {
+    if (p.tipe_pengajuan !== 'lupa_absen' || p.status_approval === 'rejected') return false;
+    const d = new Date(p.tanggal_mulai);
+    return d.getMonth() + 1 === selectedLupaMonth && d.getFullYear() === selectedLupaYear;
+  }).length;
+  const remainingLupaQuota = Math.max(0, 3 - usedLupaThisMonth);
+
+  const handleSubmitLupaAbsen = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLupaMsg(null);
+
+    if (!lupaTanggal) {
+      setLupaMsg({ type: 'error', text: 'Tanggal presensi wajib dipilih.' });
+      return;
+    }
+
+    if (!lupaFotoSelfie) {
+      setLupaMsg({ type: 'error', text: 'Wajib mengambil foto selfie untuk verifikasi pengajuan lupa absen!' });
+      return;
+    }
+
+    if (usedLupaThisMonth >= 3) {
+      setLupaMsg({
+        type: 'error',
+        text: `Batas pengajuan lupa absen untuk bulan ${selectedLupaMonth}/${selectedLupaYear} telah mencapai batas maksimal (3 kali). Sisa kuota bulan sebelumnya otomatis hangus.`,
+      });
+      return;
+    }
+
+    setLupaSubmitting(true);
+    try {
+      const res = await fetch('/api/pengajuan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipe_pengajuan: 'lupa_absen',
+          tanggal_mulai: lupaTanggal,
+          tanggal_selesai: lupaTanggal,
+          tipe_absen_req: lupaTipeAbsen,
+          waktu_presensi_req: lupaWaktu,
+          alasan: lupaAlasan || `Pengajuan Lupa Absen ${lupaTipeAbsen === 'masuk' ? 'Masuk' : 'Pulang'}`,
+          foto_selfie_base64: lupaFotoSelfie,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal mengirim pengajuan lupa absen');
+
+      setLupaMsg({
+        type: 'success',
+        text: 'Pengajuan Lupa Absen berhasil dikirim dan menunggu persetujuan Administrator!',
+      });
+      fetchPengajuan();
+      fetchHistoryWithFilters();
+      setTimeout(() => {
+        closeLupaAbsenModal();
+      }, 1800);
+    } catch (err: any) {
+      setLupaMsg({ type: 'error', text: err.message });
+    } finally {
+      setLupaSubmitting(false);
     }
   };
 
@@ -1149,6 +1327,7 @@ export default function PegawaiDashboard() {
               </div>
 
               {/* Office Policy Card */}
+              {/* Office Policy Card */}
               <div
                 className={`border rounded-3xl p-5 shadow-sm text-xs space-y-2.5 transition ${
                   darkMode ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-sky-200 text-slate-800'
@@ -1167,6 +1346,30 @@ export default function PegawaiDashboard() {
                   <li>Denda Disiplin: pengurangan Rp 500 per menit keterlambatan atau mendahului.</li>
                   <li>Radius Geofencing: Maksimal {kantor?.radius_meter || 100} meter dari kantor.</li>
                 </ul>
+              </div>
+
+              {/* TOMBOL EMAS BERKILAU: AJUKAN LUPA ABSEN */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={openLupaAbsenModal}
+                  className="w-full relative group overflow-hidden py-3.5 px-5 rounded-2xl font-black text-xs sm:text-sm tracking-wider uppercase shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center justify-center gap-2 border-2 border-yellow-200 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-yellow-300 hover:via-amber-200 hover:to-yellow-400 text-amber-950"
+                  style={{
+                    boxShadow: '0 0 25px rgba(245, 158, 11, 0.45), 0 4px 15px rgba(217, 119, 6, 0.35)',
+                  }}
+                  title="Ajukan permohonan presensi yang terlewat (Maksimal 3 kali per bulan)"
+                >
+                  {/* Efek Kilau Cahaya (Shimmering Light Effect) */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full duration-1000 bg-gradient-to-r from-transparent via-white/60 to-transparent transition-all pointer-events-none" />
+
+                  <Sparkles className="w-5 h-5 text-amber-950 animate-pulse flex-shrink-0" />
+                  <span className="drop-shadow-sm font-black text-amber-950">
+                    Ajukan Lupa Absen
+                  </span>
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-950/15 text-amber-950 border border-amber-950/20 whitespace-nowrap">
+                    Maks. 3x/Bln
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -1533,7 +1736,13 @@ export default function PegawaiDashboard() {
                     >
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-extrabold text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                          <span
+                            className={`font-black text-xs px-2.5 py-0.5 rounded-full ${
+                              p.tipe_pengajuan === 'lupa_absen'
+                                ? 'bg-amber-100 text-amber-950 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-700'
+                                : 'text-slate-900 dark:text-white'
+                            }`}
+                          >
                             {p.tipe_pengajuan.replace('_', ' ').toUpperCase()}
                           </span>
                           <span
@@ -1548,9 +1757,31 @@ export default function PegawaiDashboard() {
                             {p.status_approval.toUpperCase()}
                           </span>
                         </div>
-                        <div className="text-slate-700 dark:text-slate-300 font-semibold">
-                          {p.tanggal_mulai} s/d {p.tanggal_selesai} ({p.jumlah_hari_kerja} Hari Kerja)
-                        </div>
+
+                        {p.tipe_pengajuan === 'lupa_absen' ? (
+                          <div className="space-y-0.5 text-slate-800 dark:text-slate-200 font-semibold">
+                            <div>
+                              Tanggal Presensi:{' '}
+                              <strong className={darkMode ? 'text-white' : 'text-slate-950'}>
+                                {p.tanggal_mulai}
+                              </strong>{' '}
+                              (Pukul {p.waktu_presensi_req ? String(p.waktu_presensi_req).substring(0, 5) : '07:30'} WITA)
+                            </div>
+                            <div className="text-[11px] text-slate-700 dark:text-slate-300">
+                              Tipe:{' '}
+                              <strong>
+                                Absen {p.tipe_absen_req === 'pulang' ? 'Pulang' : 'Masuk'}
+                              </strong>{' '}
+                              • Status: <strong>Tepat Waktu</strong> • Jarak:{' '}
+                              <strong>{p.jarak_meter_req || 100}m</strong>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-slate-700 dark:text-slate-300 font-semibold">
+                            {p.tanggal_mulai} s/d {p.tanggal_selesai} ({p.jumlah_hari_kerja} Hari Kerja)
+                          </div>
+                        )}
+
                         <div className={`mt-1 italic ${darkMode ? 'text-slate-200' : 'text-slate-800 font-medium'}`}>
                           "{p.alasan}"
                         </div>
@@ -1561,19 +1792,21 @@ export default function PegawaiDashboard() {
                         )}
                       </div>
 
-                      {p.url_dokumen_pendukung_cloudinary && (
+                      {(p.url_foto_selfie || p.url_dokumen_pendukung_cloudinary) && (
                         <a
-                          href={p.url_dokumen_pendukung_cloudinary}
+                          href={p.url_foto_selfie || p.url_dokumen_pendukung_cloudinary}
                           target="_blank"
                           rel="noreferrer"
-                          className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 text-xs transition whitespace-nowrap cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 text-xs transition whitespace-nowrap cursor-pointer font-bold ${
                             darkMode
                               ? 'bg-slate-800 hover:bg-slate-700 text-sky-400 border-slate-700'
                               : 'bg-white hover:bg-sky-50 text-sky-700 border-sky-200 shadow-sm'
                           }`}
                         >
                           <FileText className="w-3.5 h-3.5" />
-                          <span>Lihat Berkas</span>
+                          <span>
+                            {p.tipe_pengajuan === 'lupa_absen' ? 'Lihat Foto Selfie' : 'Lihat Berkas'}
+                          </span>
                         </a>
                       )}
                     </div>
@@ -1814,6 +2047,340 @@ export default function PegawaiDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* MODAL POPUP MEWAH: AJUKAN LUPA ABSEN */}
+        {showLupaAbsenModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto animate-fadeIn">
+            <div
+              className={`relative w-full max-w-lg rounded-3xl border shadow-2xl p-6 sm:p-7 my-8 transition-all duration-300 ${
+                darkMode
+                  ? 'bg-slate-900 border-amber-500/40 text-slate-100 shadow-amber-500/10'
+                  : 'bg-white border-amber-300 text-slate-800 shadow-amber-300/30'
+              }`}
+            >
+              {/* Modal Header */}
+              <div className="flex items-start justify-between pb-4 border-b border-amber-200/60 dark:border-amber-900/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-amber-950 shadow-md flex-shrink-0">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className={`text-base font-black flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      <span>Form Pengajuan Lupa Absen</span>
+                    </h3>
+                    <p className={`text-[11px] font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      Permohonan pencatatan presensi yang terlewat
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeLupaAbsenModal}
+                  className="p-1.5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Monthly Quota Indicator Banner */}
+              <div className="my-4 p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-400/15 to-amber-500/15 border border-amber-400/40 text-xs">
+                <div className="flex items-center justify-between font-black text-amber-950 dark:text-amber-200">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    Bulan {bulanOptions.find((b) => b.val === selectedLupaMonth)?.label} {selectedLupaYear}
+                  </span>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-black ${
+                      remainingLupaQuota > 0
+                        ? 'bg-amber-400/30 text-amber-900 dark:text-amber-200 border border-amber-400/50'
+                        : 'bg-rose-500/20 text-rose-800 dark:text-rose-200 border border-rose-500/40'
+                    }`}
+                  >
+                    {remainingLupaQuota} dari 3 Kuota Tersedia
+                  </span>
+                </div>
+                <p className="text-[11px] font-medium text-amber-900 dark:text-amber-300/90 mt-1 leading-relaxed">
+                  Setiap pegawai maksimal mengajukan <strong>3 kali per bulan</strong>. Sisa kuota bulan sebelumnya{' '}
+                  <strong>otomatis hangus</strong> dan tidak diakumulasi ke bulan berikutnya.
+                </p>
+              </div>
+
+              {lupaMsg && (
+                <div
+                  className={`mb-4 p-3 rounded-xl text-xs flex items-center gap-2 font-bold ${
+                    lupaMsg.type === 'success'
+                      ? 'bg-emerald-100 border border-emerald-400 text-emerald-950 dark:bg-emerald-950/60 dark:border-emerald-700 dark:text-emerald-200'
+                      : 'bg-rose-100 border border-rose-400 text-rose-950 dark:bg-rose-950/60 dark:border-rose-700 dark:text-rose-200'
+                  }`}
+                >
+                  {lupaMsg.type === 'success' ? (
+                    <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  )}
+                  <span>{lupaMsg.text}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmitLupaAbsen} className="space-y-4 text-xs">
+                {/* 1. Tanggal Presensi */}
+                <div>
+                  <label className={`block font-black mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                    1. Tanggal Presensi (Tanggal, Bulan, Tahun) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={lupaTanggal}
+                    onChange={(e) => setLupaTanggal(e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)}
+                    className={`w-full px-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs ${
+                      darkMode
+                        ? 'bg-slate-800 border border-slate-700 text-white'
+                        : 'bg-white border-2 border-amber-200 text-slate-900 shadow-sm'
+                    }`}
+                  />
+                </div>
+
+                {/* 2. Tipe Absen & 3. Waktu Presensi */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={`block font-black mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                      2. Tipe Absen <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={lupaTipeAbsen}
+                      onChange={(e: any) => handleLupaTipeChange(e.target.value)}
+                      className={`w-full px-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs ${
+                        darkMode
+                          ? 'bg-slate-800 border border-slate-700 text-white'
+                          : 'bg-white border-2 border-amber-200 text-slate-900 shadow-sm'
+                      }`}
+                    >
+                      <option value="masuk">Masuk (Default 07:30)</option>
+                      <option value="pulang">Pulang (Default 16:00)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block font-black mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                      3. Waktu Presensi
+                    </label>
+                    <input
+                      type="time"
+                      required
+                      value={lupaWaktu}
+                      onChange={(e) => setLupaWaktu(e.target.value)}
+                      className={`w-full px-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs ${
+                        darkMode
+                          ? 'bg-slate-800 border border-slate-700 text-white'
+                          : 'bg-white border-2 border-amber-200 text-slate-900 shadow-sm'
+                      }`}
+                    />
+                    <span className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5 block">
+                      Masuk: 07:30 | Pulang: 16:00 WITA
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Status Presensi & 5. Jarak GPS (Keduanya Read-only) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={`block font-black mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                      4. Status Presensi (Otomatis)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        readOnly
+                        disabled
+                        value="Tepat Waktu"
+                        className={`w-full px-3.5 py-2.5 rounded-xl font-black text-xs cursor-not-allowed ${
+                          darkMode
+                            ? 'bg-slate-800/80 border border-emerald-700 text-emerald-400'
+                            : 'bg-emerald-50 border-2 border-emerald-300 text-emerald-900 shadow-sm'
+                        }`}
+                      />
+                      <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 absolute right-3 top-2.5" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={`block font-black mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                      5. Jarak GPS (Otomatis)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        readOnly
+                        disabled
+                        value="100m"
+                        className={`w-full px-3.5 py-2.5 rounded-xl font-black text-xs cursor-not-allowed ${
+                          darkMode
+                            ? 'bg-slate-800/80 border border-sky-700 text-sky-400'
+                            : 'bg-sky-50 border-2 border-sky-300 text-sky-900 shadow-sm'
+                        }`}
+                      />
+                      <MapPin className="w-4 h-4 text-sky-600 dark:text-sky-400 absolute right-3 top-2.5" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 6. Foto Selfie Verifikasi (Wajib!) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={`block font-black ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                      6. Ambil Foto Selfie Verifikasi <span className="text-rose-500 font-black">* (Wajib)</span>
+                    </label>
+                    <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                      Tampil di log admin & pegawai
+                    </span>
+                  </div>
+
+                  {/* Hidden Canvas for capture */}
+                  <canvas ref={lupaCanvasRef} className="hidden" />
+
+                  {lupaFotoSelfie ? (
+                    <div className="relative p-2.5 rounded-2xl border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-slate-800 flex items-center gap-3">
+                      <img
+                        src={lupaFotoSelfie}
+                        alt="Selfie Lupa Absen"
+                        className="w-16 h-16 rounded-xl object-cover border-2 border-amber-400 shadow-sm flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <div className="font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Foto Selfie Siap Terverifikasi</span>
+                        </div>
+                        <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5">
+                          Foto wajah berhasil diambil dan siap dikirim ke sistem.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={startLupaCamera}
+                        className="px-3 py-1.5 rounded-xl bg-amber-200 dark:bg-slate-700 hover:bg-amber-300 dark:hover:bg-slate-600 text-amber-950 dark:text-white font-bold text-xs transition cursor-pointer flex-shrink-0"
+                      >
+                        Foto Ulang
+                      </button>
+                    </div>
+                  ) : lupaCameraActive ? (
+                    <div className="space-y-2 p-3 rounded-2xl border-2 border-amber-400 bg-black/90">
+                      <div className="relative rounded-xl overflow-hidden aspect-video bg-black flex items-center justify-center">
+                        <video
+                          ref={lupaVideoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="w-full h-full object-cover transform -scale-x-100"
+                        />
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={captureLupaPhoto}
+                          className="px-4 py-2 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-amber-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-lg cursor-pointer"
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span>Ambil Foto Sekarang</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={stopLupaCamera}
+                          className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs cursor-pointer"
+                        >
+                          Tutup Kamera
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-2xl border-2 border-dashed border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-slate-800/60 text-center space-y-2.5">
+                      <div className="w-10 h-10 rounded-full bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 flex items-center justify-center mx-auto">
+                        <Camera className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900 dark:text-white">
+                          Buka Kamera Wajah untuk Ambil Selfie
+                        </div>
+                        <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5">
+                          Foto selfie wajib menghadap kamera untuk validasi kehadiran fisik Anda.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={startLupaCamera}
+                          className="px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-md cursor-pointer"
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span>Buka Kamera Selfie</span>
+                        </button>
+
+                        <label className="px-3.5 py-2 bg-white dark:bg-slate-700 border border-amber-300 dark:border-slate-600 hover:bg-amber-100 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Unggah File Foto</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="user"
+                            onChange={handleLupaFileChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 7. Alasan / Keterangan */}
+                <div>
+                  <label className={`block font-black mb-1 ${darkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                    7. Alasan / Keterangan Lupa Absen
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={lupaAlasan}
+                    onChange={(e) => setLupaAlasan(e.target.value)}
+                    placeholder="Contoh: Mengalami kendala koneksi internet saat jam absen / dinas mendadak..."
+                    className={`w-full px-3.5 py-2.5 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs ${
+                      darkMode
+                        ? 'bg-slate-800 border border-slate-700 text-white placeholder-slate-400'
+                        : 'bg-white border-2 border-amber-200 text-slate-900 placeholder-slate-400 shadow-sm'
+                    }`}
+                  />
+                </div>
+
+                {/* Tombol Aksi */}
+                <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={closeLupaAbsenModal}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={lupaSubmitting || remainingLupaQuota <= 0}
+                    className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 shadow-md transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  >
+                    {lupaSubmitting ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Mengirim Pengajuan...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Kirim Pengajuan Lupa Absen</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>

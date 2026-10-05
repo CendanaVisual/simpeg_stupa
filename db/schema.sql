@@ -92,22 +92,36 @@ CREATE TABLE IF NOT EXISTS hari_libur (
 );
 CREATE INDEX IF NOT EXISTS idx_hari_libur_tanggal ON hari_libur(tanggal);
 
--- 6. TABEL PENGAJUAN (Cuti Tahunan, Sakit, & Dinas Luar)
+-- 6. TABEL PENGAJUAN (Cuti Tahunan, Sakit, Dinas Luar, & Lupa Absen)
 CREATE TABLE IF NOT EXISTS pengajuan (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pegawai_id UUID NOT NULL REFERENCES pegawai(id) ON DELETE CASCADE,
-    tipe_pengajuan VARCHAR(30) NOT NULL CHECK (tipe_pengajuan IN ('cuti_tahunan', 'cuti_sakit', 'dinas_luar')),
+    tipe_pengajuan VARCHAR(30) NOT NULL CHECK (tipe_pengajuan IN ('cuti_tahunan', 'cuti_sakit', 'dinas_luar', 'lupa_absen')),
     tanggal_mulai DATE NOT NULL,
     tanggal_selesai DATE NOT NULL,
     jumlah_hari_kerja INT NOT NULL DEFAULT 1,
     alasan TEXT,
     url_dokumen_pendukung_cloudinary TEXT,
+    tipe_absen_req VARCHAR(20),
+    waktu_presensi_req TIME,
+    status_presensi_req VARCHAR(30) DEFAULT 'tepat_waktu',
+    jarak_meter_req NUMERIC DEFAULT 100,
+    url_foto_selfie TEXT,
     status_approval VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status_approval IN ('pending', 'approved', 'rejected')),
     approved_by UUID REFERENCES pegawai(id) ON DELETE SET NULL,
     catatan_admin TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Update constraint & columns jika tabel sudah ada sebelumnya
+ALTER TABLE pengajuan DROP CONSTRAINT IF EXISTS pengajuan_tipe_pengajuan_check;
+ALTER TABLE pengajuan ADD CONSTRAINT pengajuan_tipe_pengajuan_check CHECK (tipe_pengajuan IN ('cuti_tahunan', 'cuti_sakit', 'dinas_luar', 'lupa_absen'));
+ALTER TABLE pengajuan ADD COLUMN IF NOT EXISTS tipe_absen_req VARCHAR(20);
+ALTER TABLE pengajuan ADD COLUMN IF NOT EXISTS waktu_presensi_req TIME;
+ALTER TABLE pengajuan ADD COLUMN IF NOT EXISTS status_presensi_req VARCHAR(30) DEFAULT 'tepat_waktu';
+ALTER TABLE pengajuan ADD COLUMN IF NOT EXISTS jarak_meter_req NUMERIC DEFAULT 100;
+ALTER TABLE pengajuan ADD COLUMN IF NOT EXISTS url_foto_selfie TEXT;
 
 -- 6. FUNGSI RUMUS HAVERSINE (VALIDASI JARAK DALAM METER)
 DROP FUNCTION IF EXISTS hitung_jarak_haversine(numeric, numeric, numeric, numeric) CASCADE;

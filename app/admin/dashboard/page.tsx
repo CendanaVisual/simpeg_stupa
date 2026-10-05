@@ -883,8 +883,10 @@ export default function AdminDashboard() {
                         </span>
                         <span className="text-xs font-bold text-slate-800 dark:text-slate-300">({p.nip || 'NIP: -'})</span>
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                            p.tipe_pengajuan === 'cuti_tahunan'
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-black ${
+                            p.tipe_pengajuan === 'lupa_absen'
+                              ? 'bg-amber-100 text-amber-950 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-400 dark:border-amber-600'
+                              : p.tipe_pengajuan === 'cuti_tahunan'
                               ? 'bg-blue-100 text-blue-950 dark:bg-blue-900/40 dark:text-blue-200 border border-blue-400 dark:border-blue-700'
                               : p.tipe_pengajuan === 'cuti_sakit'
                               ? 'bg-amber-100 text-amber-950 dark:bg-amber-900/40 dark:text-amber-200 border border-amber-400 dark:border-amber-700'
@@ -906,30 +908,69 @@ export default function AdminDashboard() {
                         </span>
                       </div>
 
-                      <div className={`text-xs ${darkMode ? 'text-slate-300' : 'text-slate-900 font-semibold'}`}>
-                        Periode:{' '}
-                        <strong className={darkMode ? 'text-white' : 'text-slate-950 font-black'}>
-                          {p.tanggal_mulai} s/d {p.tanggal_selesai}
-                        </strong>{' '}
-                        ({p.jumlah_hari_kerja} hari kerja di luar Sabtu-Minggu) | Sisa Kuota Cuti Pegawai:{' '}
-                        <strong className="text-emerald-700 dark:text-emerald-300 font-bold">{p.sisa_cuti_tahunan} hari</strong>
-                      </div>
+                      {p.tipe_pengajuan === 'lupa_absen' ? (
+                        <div className="space-y-1">
+                          <div className={`text-xs ${darkMode ? 'text-slate-300' : 'text-slate-900 font-semibold'}`}>
+                            Permohonan Presensi:{' '}
+                            <strong className={darkMode ? 'text-white' : 'text-slate-950 font-black'}>
+                              {p.tanggal_mulai}
+                            </strong>{' '}
+                            (Pukul {p.waktu_presensi_req ? String(p.waktu_presensi_req).substring(0, 5) : '07:30'} WITA) | Tipe:{' '}
+                            <span className="font-bold uppercase text-amber-800 dark:text-amber-300">
+                              Absen {p.tipe_absen_req === 'pulang' ? 'Pulang' : 'Masuk'}
+                            </span>{' '}
+                            | Status: <span className="font-bold text-emerald-700 dark:text-emerald-400">Tepat Waktu</span> | Jarak:{' '}
+                            <span className="font-bold">{p.jarak_meter_req || 100} m</span>
+                          </div>
+                          <div className={`text-xs italic ${darkMode ? 'text-slate-200' : 'text-slate-900 font-semibold'}`}>
+                            Alasan: "{p.alasan}"
+                          </div>
+                          {(p.url_foto_selfie || p.url_dokumen_pendukung_cloudinary) && (
+                            <div className="pt-1 flex items-center gap-3">
+                              <a
+                                href={p.url_foto_selfie || p.url_dokumen_pendukung_cloudinary}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 text-xs text-sky-700 dark:text-sky-300 hover:underline font-bold"
+                              >
+                                <img
+                                  src={p.url_foto_selfie || p.url_dokumen_pendukung_cloudinary}
+                                  alt="Selfie Pegawai"
+                                  className="w-10 h-10 rounded-xl object-cover border-2 border-amber-400 shadow-sm"
+                                />
+                                <span>Buka Foto Selfie Verifikasi Wajah (Cloudinary)</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className={`text-xs ${darkMode ? 'text-slate-300' : 'text-slate-900 font-semibold'}`}>
+                            Periode:{' '}
+                            <strong className={darkMode ? 'text-white' : 'text-slate-950 font-black'}>
+                              {p.tanggal_mulai} s/d {p.tanggal_selesai}
+                            </strong>{' '}
+                            ({p.jumlah_hari_kerja} hari kerja di luar Sabtu-Minggu) | Sisa Kuota Cuti Pegawai:{' '}
+                            <strong className="text-emerald-700 dark:text-emerald-300 font-bold">{p.sisa_cuti_tahunan} hari</strong>
+                          </div>
 
-                      <div className={`text-xs italic ${darkMode ? 'text-slate-200' : 'text-slate-900 font-semibold'}`}>
-                        Alasan: "{p.alasan}"
-                      </div>
+                          <div className={`text-xs italic ${darkMode ? 'text-slate-200' : 'text-slate-900 font-semibold'}`}>
+                            Alasan: "{p.alasan}"
+                          </div>
 
-                      {p.url_dokumen_pendukung_cloudinary && (
-                        <div className="pt-1">
-                          <a
-                            href={p.url_dokumen_pendukung_cloudinary}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs text-sky-700 dark:text-sky-300 hover:underline font-bold"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            <span>Buka Berkas Bukti / Surat Dokter (Cloudinary)</span>
-                          </a>
+                          {p.url_dokumen_pendukung_cloudinary && (
+                            <div className="pt-1">
+                              <a
+                                href={p.url_dokumen_pendukung_cloudinary}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs text-sky-700 dark:text-sky-300 hover:underline font-bold"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span>Buka Berkas Bukti / Surat Dokter (Cloudinary)</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -2256,7 +2297,13 @@ export default function AdminDashboard() {
                               {l.jarak_dari_kantor ? `${l.jarak_dari_kantor}m` : '-'}
                             </td>
                             <td className="py-2 px-2 text-slate-950 dark:text-slate-100 print:text-black font-bold text-[11px] border border-slate-200 dark:border-slate-800 print:border-black">
-                              {l.catatan || (
+                              {l.catatan === 'Lupa Absen' ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-950 border border-amber-400 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-700 print:border print:border-black">
+                                  Lupa Absen
+                                </span>
+                              ) : l.catatan ? (
+                                l.catatan
+                              ) : (
                                 <>
                                   {l.waktu_terlambat > 0 && `Telat ${l.waktu_terlambat}m. `}
                                   {l.waktu_mendahului > 0 && `Mendahului ${l.waktu_mendahului}m. `}
